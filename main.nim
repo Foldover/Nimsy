@@ -3,41 +3,77 @@
 import glut
 import opengl
 import glu
+import glm
+import math
 import streams
 
 type
   Shader = ref object of RootObj
-    Program* : GLuint
+    ID* : GLuint
+var shader: Shader
 
-proc makeShader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
+proc logShader(shader: GLuint) =
+   var length: GLint = 0
+   glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
+   var log: string = newString(length.int)
+   glGetShaderInfoLog(shader, length, nil, log)
+   echo "Log: ", log
+
+proc loadShader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
   var
     verFromFile: array[1, string] = [readFile(pathToVerShader).string]
     fragFromFile: array[1, string] = [readFile(pathToFragShader).string]
-    verSource: allocCStringArray(verFromFile)
-    fragSource: allocCStringArray(fragFromFile)
+    verSource = allocCStringArray(verFromFile)
+    fragSource = allocCStringArray(fragFromFile)
     resultVer: GLuint = 0
     resultFrag: GLuint = 0
+    compiled: GLint = 0
+
   resultVer = glCreateShader(GL_VERTEX_SHADER)
   glShaderSource(resultVer, 1, verSource, nil)
   glCompileShader(resultVer)
+  glGetShaderiv(resultVer, GL_COMPILE_STATUS, compiled.addr)
+  if compiled == 0:
+    logShader(resultVer)
+
   resultFrag = glCreateShader(GL_FRAGMENT_SHADER)
   glShaderSource(resultFrag, 1, fragSource, nil)
   glCompileShader(resultFrag)
+  glGetShaderiv(resultFrag, GL_COMPILE_STATUS, compiled.addr)
+  if compiled == 0:
+    logShader(resultFrag)
+
+  s.ID = glCreateProgram();
+  glAttachShader(s.ID, resultVer)
+  glAttachShader(s.ID, resultFrag)
+  glLinkProgram(s.ID)
+
+  deallocCStringArray(verSource)
+  deallocCStringArray(fragSource)
+  glDeleteShader(resultVer)
+  glDeleteShader(resultFrag)
+
+  glUseProgram(s.ID)
 
 var FILL: bool = true
 var STROKE: bool = true
 var color_stroke: array = [0.0, 0.0, 0.0, 0.0]
 var color_fill: array = [0.0, 0.0, 0.0, 0.0]
 var half_sw: float = 0.5
+var model_view = mat4f(1.0)
+var projection: Mat4x4[float32]
+echo model_view
 
 proc useFillColor() =
   glColor4f(color_fill[0], color_fill[1], color_fill[2], color_fill[3])
 
 proc useStrokeColor() =
-  glColor4f(color_stroke[0], color_stroke[1], color_stroke[2], color_stroke[3])
+  let fragmentColorLocation: GLint = glGetUniformLocation(shader.ID, "color")
+  glUniform4f(fragmentColorLocation, color_stroke[0], color_stroke[1], color_stroke[2], color_stroke[3])
 
 proc strokeWeight(sw: float) =
-  glLineWidth(sw)
+  let vertexWidthLocation: GLint = glGetUniformLocation(shader.ID, "u_linewidth")
+  glUniform1f(vertexWidthLocation, sw)
   half_sw = sw * 0.5
 
 proc noStroke() =
@@ -82,26 +118,21 @@ proc rect(t, l, w, h: float) =
     glVertex2f(t, l + half_sw)
     glEnd()
 
-proc line(x1: float, y1: float, x2: float, y2: float) =
-  if STROKE:
-    glBegin(GL_TRIANGLE_STRIP);
-    glColor3f(1,1,1);
-    glVertex3f(50,270,0);
-    glVertex3f( 100,30,0);
-    useStrokeColor()
-    glVertex3f( 54,270,0);
-    glVertex3f( 104,30,0);
-    glColor3f( 1,1,1);
-    glVertex3f( 58,270,0);
-    glVertex3f( 108,30,0);
-    glEnd();
-
-
-    #useStrokeColor()
-    #glBegin(GL_LINES)
-    #glVertex2f(x1, y1)
-    #glVertex2f(x2, y2)
-    #glEnd()
+proc line(x1, y1, x2, y2: float) =
+  let modelViewLocation: GLint = glGetUniformLocation(shader.ID, "u_mv_matrix")
+  let projectionLocation: GLint = glGetUniformLocation(shader.ID, "u_p_matrix")
+  var
+    pointer_modelView: ptr = model_view.caddr
+    pointer_projection: ptr = projection.caddr
+  glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
+  glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+  useStrokeColor()
+  glBegin(GL_TRIANGLES)
+  glVertex2f(x1, y1)
+  glVertex2f(x1, y1)
+  glVertex2f(x2, y2)
+  glVertex2f(x2, y2)
+  glEnd()
 
 proc point(x, y: float) =
   useStrokeColor()
@@ -115,18 +146,11 @@ proc draw() {.cdecl.} =
   glLoadIdentity()                 # Reset the model-view matrix
   glTranslatef(0.0, 0.0, 0.0)     # Move right and into the screen
 
-  # Render a cube consisting of 6 quads
-  # Each quad consists of 2 triangles
-  # Each triangle consists of 3 vertices
-
+  strokeWeight(10.0)
   stroke(0.0, 1.0, 1.0, 0.5)
   line(0, 0, 40.0, 40.0)
   stroke(0.8, 0.2, 0.0, 0.5)
   line(0.0, 40.0, 40.0, 0.0)
-  stroke(0.7, 0.7, 0.1, 0.5)
-  strokeWeight(5.0)
-  fill(0.3, 0.3, 0.3, 0.1)
-  rect(100, 100, 20, 30)
 
   glutSwapBuffers() # Swap the front and back frame buffers (double buffering)
 
@@ -145,6 +169,9 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   #gluPerspective(45.0, width / height, 0.1, 100.0)
   glOrtho(0, GLdouble(width), GLdouble(height), 0, -1.0, 1.0);
 
+  projection = mat4f(ortho(0.0, float(width), float(height), 0.0, -1.0, 1.0))
+  echo projection
+
 glutInit()
 glutInitDisplayMode(GLUT_DOUBLE)
 glutInitWindowSize(640, 480)
@@ -162,5 +189,13 @@ glEnable(GL_DEPTH_TEST)                           # Enable depth testing for z-c
 glDepthFunc(GL_LEQUAL)                            # Set the type of depth-test
 glShadeModel(GL_SMOOTH)                           # Enable smooth shading
 glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST) # Nice perspective corrections
-
+shader = Shader(ID: 0)
+loadShader(shader, "shaders/LINE_VERTEX.glsl", "shaders/LINE_FRAG.glsl")
+let modelViewLocation: GLint = glGetUniformLocation(shader.ID, "u_mv_matrix")
+let projectionLocation: GLint = glGetUniformLocation(shader.ID, "u_p_matrix")
+var
+  pointer_modelView: ptr = model_view.caddr
+  pointer_projection: ptr = projection.caddr
+glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
+glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
 glutMainLoop()
