@@ -60,6 +60,10 @@ var STROKE: bool = true
 var color_stroke: array = [0.0, 0.0, 0.0, 0.0]
 var color_fill: array = [0.0, 0.0, 0.0, 0.0]
 var half_sw: float = 0.5
+
+var vertexNormalLoc: GLint
+var vertexPosLoc: GLint
+
 var model_view = mat4f(1.0)
 var projection: Mat4x4[float32]
 echo model_view
@@ -126,11 +130,24 @@ proc line(x1, y1, x2, y2: float) =
     pointer_projection: ptr = projection.caddr
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+  var norm1 = vec2(x2 - x1, y2 - y1)
+  norm1 = normalize(norm1)
+  var norm2 = norm1
+  let ntx = norm1.x
+  norm1.x = -norm1.y
+  norm1.y = ntx
+  norm2.x = norm2.y
+  norm2.y = -ntx
   useStrokeColor()
   glBegin(GL_TRIANGLES)
-  glVertex2f(x1, y1)
+  glVertexAttrib2f(GLuint(vertexNormalLoc), GLfloat(norm1.x), GLfloat(norm1.y))
   glVertex2f(x1, y1)
   glVertex2f(x2, y2)
+  glVertexAttrib2f(GLuint(vertexNormalLoc), GLfloat(norm2.x), GLfloat(norm2.y))
+  glVertex2f(x1, y1)
+  glVertex2f(x2, y2)
+  glVertex2f(x1, y1)
+  glVertexAttrib2f(GLuint(vertexNormalLoc), GLfloat(norm1.x), GLfloat(norm1.y))
   glVertex2f(x2, y2)
   glEnd()
 
@@ -146,11 +163,11 @@ proc draw() {.cdecl.} =
   glLoadIdentity()                 # Reset the model-view matrix
   glTranslatef(0.0, 0.0, 0.0)     # Move right and into the screen
 
-  strokeWeight(10.0)
+  strokeWeight(4.0)
   stroke(0.0, 1.0, 1.0, 0.5)
-  line(0, 0, 40.0, 40.0)
+  line(0, 0, 100.0, 100.0)
   stroke(0.8, 0.2, 0.0, 0.5)
-  line(0.0, 40.0, 40.0, 0.0)
+  line(100.0, 100.0, 300.0, 100.0)
 
   glutSwapBuffers() # Swap the front and back frame buffers (double buffering)
 
@@ -198,4 +215,6 @@ var
   pointer_projection: ptr = projection.caddr
 glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
 glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+vertexNormalLoc = glGetAttribLocation(shader.ID, "a_normal")
+vertexPosLoc = glGetAttribLocation(shader.ID, "a_pos")
 glutMainLoop()
