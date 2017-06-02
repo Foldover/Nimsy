@@ -1,8 +1,28 @@
-# OpenGL example using glut
+#Setting up Nimsy
 
 import glut
 import opengl
 import glu
+import streams
+
+type
+  Shader = ref object of RootObj
+    Program* : GLuint
+
+proc makeShader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
+  var
+    verFromFile: array[1, string] = [readFile(pathToVerShader).string]
+    fragFromFile: array[1, string] = [readFile(pathToFragShader).string]
+    verSource: allocCStringArray(verFromFile)
+    fragSource: allocCStringArray(fragFromFile)
+    resultVer: GLuint = 0
+    resultFrag: GLuint = 0
+  resultVer = glCreateShader(GL_VERTEX_SHADER)
+  glShaderSource(resultVer, 1, verSource, nil)
+  glCompileShader(resultVer)
+  resultFrag = glCreateShader(GL_FRAGMENT_SHADER)
+  glShaderSource(resultFrag, 1, fragSource, nil)
+  glCompileShader(resultFrag)
 
 var FILL: bool = true
 var STROKE: bool = true
@@ -90,6 +110,7 @@ proc point(x, y: float) =
 
 proc draw() {.cdecl.} =
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) # Clear color and depth buffers
+
   glMatrixMode(GL_MODELVIEW)                          # To operate on model-view matrix
   glLoadIdentity()                 # Reset the model-view matrix
   glTranslatef(0.0, 0.0, 0.0)     # Move right and into the screen
