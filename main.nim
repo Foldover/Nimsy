@@ -6,6 +6,7 @@ import glu
 import glm
 import math
 import streams
+import random
 
 type
   Shader = ref object of RootObj
@@ -156,6 +157,26 @@ proc point(x, y: float) =
   glBegin(GL_POINTS)
   glVertex2f(x, y)
 
+#just trying stuff out
+
+type
+  Line = ref object of RootObj
+    start*: Vec2f
+    length* : float
+    color*: Vec4f
+    angle* : float
+    inc* : float
+
+proc draw(l: Line) =
+  stroke(l.color.x, l.color.y, l.color.z, l.color.w)
+  let x : float = cos(l.angle) * l.length + l.start.x
+  let y : float = sin(l.angle) * l.length + l.start.y
+  line(l.start.x, l.start.y, x, y)
+  l.angle = l.angle + l.inc
+
+var lines: array[0..100, Line]
+var passes: int = 0
+
 proc draw() {.cdecl.} =
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT) # Clear color and depth buffers
 
@@ -164,10 +185,9 @@ proc draw() {.cdecl.} =
   glTranslatef(0.0, 0.0, 0.0)     # Move right and into the screen
 
   strokeWeight(4.0)
-  stroke(0.0, 1.0, 1.0, 0.5)
-  line(0, 0, 100.0, 100.0)
-  stroke(0.8, 0.2, 0.0, 0.5)
-  line(100.0, 100.0, 300.0, 100.0)
+
+  for i in 0..100:
+    lines[i].draw()
 
   glutSwapBuffers() # Swap the front and back frame buffers (double buffering)
 
@@ -190,12 +210,14 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   echo projection
 
 glutInit()
+for i in 0..100:
+  lines[i] = Line(start: vec2f((float(i)*5.0 + 70.0), 240.0), length: 100, color: vec4f(random(1.0), random(1.0), random(1.0), 0.2), angle: (i/100*6.28), inc: 0.01)
 glutInitDisplayMode(GLUT_DOUBLE)
 glutInitWindowSize(640, 480)
 glutInitWindowPosition(50, 50)
 discard glutCreateWindow("Nimsy")
 
-glutDisplayFunc(draw)
+glutIdleFunc(draw)
 glutReshapeFunc(reshape)
 
 loadExtensions()
@@ -203,6 +225,8 @@ loadExtensions()
 glClearColor(0.0, 0.0, 0.0, 1.0)                   # Set background color to black and opaque
 glClearDepth(1.0)                                 # Set background depth to farthest
 glEnable(GL_DEPTH_TEST)                           # Enable depth testing for z-culling
+glEnable(GL_BLEND)
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 glDepthFunc(GL_LEQUAL)                            # Set the type of depth-test
 glShadeModel(GL_SMOOTH)                           # Enable smooth shading
 glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST) # Nice perspective corrections
