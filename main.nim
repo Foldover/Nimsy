@@ -17,4 +17,4 @@ proc draw() {.cdecl.} =
 
 setSetup(setup)
 setDraw(draw)
-start()
+setup()

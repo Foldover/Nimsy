@@ -5,6 +5,8 @@ import glm
 import math
 import random
 
+include PVector
+
 #[
   Shader code is temporarily here.
   #TODO: Move shader code to separate module.
@@ -67,6 +69,7 @@ var
   mHeight: float
   mMouseX: float
   mMouseY: float
+  windowID: int
 
 #[
   These variables are not to be messed with outside this module.
@@ -129,11 +132,6 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   Procedures available to Nimsy users
 ]#
 
-proc size*(width, height: float) =
-  mWidth = width
-  mHeight = height
-  glutReshapeWindow(int(mWidth), int(mHeight))
-
 proc start*(name: cstring = "Nimsy App") =
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high
@@ -144,9 +142,10 @@ proc start*(name: cstring = "Nimsy App") =
 
   glutInit()
   glutInitDisplayMode(GLUT_DOUBLE)
-  glutInitWindowSize(300, 300)
+  glutInitWindowSize(int(mWidth), int(mHeight))
   glutInitWindowPosition(50, 50)
-  discard glutCreateWindow(name)
+  windowID = glutCreateWindow(name)
+  echo windowID
 
   glutReshapeFunc(reshape)
   loadExtensions()
@@ -173,10 +172,20 @@ proc start*(name: cstring = "Nimsy App") =
   vertexNormalLocation = glGetAttribLocation(activeShader.ID, "a_normal")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
 
-  setupProcedure()
+  #ideally start() should be called by the user. Here setupProcedure would be
+  #called, and an already initialized window would be resized through size()
+  #(if it is called by the user in setupProcedure). This doesn't appear to work
+  #now and might be a bug in freeglut
+  #TODO: prevent user from calling size() more than once
+
   if drawProcedure != nil:
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
   glutMainLoop()
+
+proc size*(width, height: float) =
+  mWidth = width
+  mHeight = height
+  start()
 
 proc setSetup*(procedure: proc()) =
   setupProcedure = procedure
