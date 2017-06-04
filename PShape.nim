@@ -27,3 +27,8 @@ proc vertex*(s: PShape, x, y, z: float) =
   s.vlen += 1
 
 proc endShape*(s: PShape) =
+  glBegin(GL_TRIANGLES)
+
+  
+
+  glEnd()
