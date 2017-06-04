@@ -132,6 +132,7 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   Procedures available to Nimsy users
 ]#
 
+#FIXME: Sometimes the program fails to compile. Investigate this
 proc start*(name: cstring = "Nimsy App") =
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high

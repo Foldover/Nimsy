@@ -4,6 +4,7 @@ import Nimsy
 import glut
 import opengl
 import glu
+import PShape
 
 proc setup() =
   size(1000, 1000)
