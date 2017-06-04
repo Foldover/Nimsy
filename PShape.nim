@@ -2,6 +2,7 @@
   Module defining an object for custom shape drawing
 ]#
 
+import Nimsy-gl
 import glut
 import opengl
 import glu
@@ -24,3 +25,5 @@ proc beginShape*(s: PShape) =
 proc vertex*(s: PShape, x, y, z: float) =
   s.vertices.insert(Vertex(x: x, y: y, z: z), s.vlen)
   s.vlen += 1
+
+proc endShape*(s: PShape) =

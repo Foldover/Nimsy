@@ -183,6 +183,9 @@ proc start*(name: cstring = "Nimsy App") =
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
   glutMainLoop()
 
+#[
+  Procedures available to users.
+]#
 proc size*(width, height: float) =
   mWidth = width
   mHeight = height
