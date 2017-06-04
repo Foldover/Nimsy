@@ -4,6 +4,7 @@ import glu
 import glm
 import math
 import random
+import typetraits
 
 include PVector
 
@@ -61,6 +62,13 @@ proc shader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
   glUseProgram(s.ID)
 
 #[
+  Enums needed to let the shaders now how they should operate on our vertices.
+]#
+type
+  DrawingModes {.pure.} = enum
+    LINE, POLYGON
+
+#[
   Variables that aren't directly available outside of the module,
   but have getter procedures.
 ]#
@@ -80,19 +88,22 @@ var
   #Rendering variables.
   FILL: bool = true
   STROKE: bool = true
+  color_stroke: array[4, float] = [0.0, 0.0, 0.0, 1.0]
+  color_fill: array[4, float] = [1.0, 1.0, 1.0, 1.0]
 
   #Shader matrices.
-  model_view = mat4f(1.0)
-  projection: Mat4x4[float32]
+  model_view* = mat4f(1.0)
+  projection*: Mat4x4[float32]
 
   #Shader locations.
-  modelViewLocation: GLint
-  projectionLocation: GLint
+  modelViewLocation*: GLint
+  projectionLocation*: GLint
   fragmentStrokeColorLocation: GLint
   fragmentFillColorLocation: GLint
   vertexWidthLocation: GLint
   vertexNormalLocation: GLint
   vertexPositionLocation: GLint
+  drawingModeLocation: GLint
 
   #Procedure references. These are used to run the users program.
   setupProcedure: proc()
@@ -142,11 +153,10 @@ proc start*(name: cstring = "Nimsy App") =
     echo "You must define and supply a setup procedure"
 
   glutInit()
-  glutInitDisplayMode(GLUT_DOUBLE)
+  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL)
   glutInitWindowSize(int(mWidth), int(mHeight))
   glutInitWindowPosition(50, 50)
   windowID = glutCreateWindow(name)
-  echo windowID
 
   glutReshapeFunc(reshape)
   loadExtensions()
@@ -154,11 +164,13 @@ proc start*(name: cstring = "Nimsy App") =
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
   glEnable(GL_DEPTH_TEST)
+  glEnable(GL_STENCIL_TEST)
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
   glShadeModel(GL_SMOOTH)
   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+  glClearStencil( 0 );
   activeShader = Shader(ID: 0)
 
   #TODO: load default shaders from separate module
@@ -172,6 +184,7 @@ proc start*(name: cstring = "Nimsy App") =
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   vertexNormalLocation = glGetAttribLocation(activeShader.ID, "a_normal")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
+  drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
 
   #ideally start() should be called by the user. Here setupProcedure would be
   #called, and an already initialized window would be resized through size()
@@ -182,6 +195,9 @@ proc start*(name: cstring = "Nimsy App") =
   if drawProcedure != nil:
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
   glutMainLoop()
+
+proc setDrawingMode*(dm: DrawingModes) =
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(dm))
 
 #[
   Procedures available to users.
@@ -216,16 +232,28 @@ proc noStroke*() =
 
 proc stroke*(r, g, b, a: float) =
   STROKE = true
+  color_stroke[0] = r
+  color_stroke[1] = g
+  color_stroke[2] = b
+  color_stroke[3] = a
+
+proc useStrokeColor*() =
   fragmentStrokeColorLocation = glGetUniformLocation(activeShader.ID, "stroke_color")
-  glUniform4f(fragmentStrokeColorLocation, r, g, b, a)
+  glUniform4f(fragmentStrokeColorLocation, color_stroke[0], color_stroke[1], color_stroke[2], color_stroke[3])
 
 proc noFill*() =
   FILL = false
 
 proc fill*(r, g, b, a: float) =
   FILL = true
+  color_fill[0] = r
+  color_fill[1] = g
+  color_fill[2] = b
+  color_fill[3] = a
+
+proc useFillColor*() =
   fragmentFillColorLocation = glGetUniformLocation(activeShader.ID, "fill_color")
-  glUniform4f(fragmentFillColorLocation, r, g, b, a)
+  glUniform4f(fragmentFillColorLocation, color_fill[0], color_fill[1], color_fill[2], color_fill[3])
 
 #[
   Primitive drawing.
@@ -241,6 +269,9 @@ proc line*(x1, y1, x2, y2: float) =
   #pass transformation matrices to shader.
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+  glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.LINE))
+
+  useStrokeColor()
 
   #calculate normals. This is needed to draw variable-width lines.
   var norm1 = vec2(x2 - x1, y2 - y1)

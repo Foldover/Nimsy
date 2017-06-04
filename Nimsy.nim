@@ -1,27 +1,28 @@
-import Nimsy-gl
+
 import PVector
 import PShape
-import Nimsy-drawing
+import Nimsydrawing
+import Nimsygl
 
-#export nimsy-gl symbols
-export Nimsy-gl.width
-export Nimsy-gl.height
-export Nimsy-gl.mouseX
-export Nimsy-gl.mouseY
-export Nimsy-gl.size
-export Nimsy-gl.setSetup
-export Nimsy-gl.setDraw
-export Nimsy-gl.loop
-export Nimsy-gl.background
-export Nimsy-gl.strokeWeight
-export Nimsy-gl.noStroke
-export Nimsy-gl.stroke
-export Nimsy-gl.noFill
-export Nimsy-gl.fill
-export Nimsy-gl.line
+#export nimsygl symbols
+export Nimsygl.width
+export Nimsygl.height
+export Nimsygl.mouseX
+export Nimsygl.mouseY
+export Nimsygl.size
+export Nimsygl.setSetup
+export Nimsygl.setDraw
+export Nimsygl.loop
+export Nimsygl.background
+export Nimsygl.strokeWeight
+export Nimsygl.noStroke
+export Nimsygl.stroke
+export Nimsygl.noFill
+export Nimsygl.fill
+export Nimsygl.line
 
 #export PVector symbols
-export PVector.newVector
+export PVector.newPVector
 export PVector.random2D
 export PVector.random3D
 export PVector.fromAngle
@@ -40,3 +41,10 @@ export PVector.setMag
 export PVector.heading
 export PVector.rotated
 export PVector.angleBetween
+
+#export PShape symbols
+export PShape.newPShape
+export PShape.vertex
+export PShape.beginShape
+export PShape.endShape
+export PShape.shape

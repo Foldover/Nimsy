@@ -10,6 +10,9 @@
   TODO: Math operators should produce new vector, while math procs should operate on the vector they get called upon
 ]#
 
+import random
+import math
+
 type
   PVector = ref object of RootObj
     x*: float
@@ -107,7 +110,7 @@ proc rotated*(v: PVector, angle: float): PVector =
     sn: float = sin(angle)
   return PVector(x: (v.x*cs - v.y*sn), y: (v.x*sn + v.y*cs), z: v.z)
 
-proc angleBetween(v1, v2: PVector): float =
+proc angleBetween*(v1, v2: PVector): float =
   var
     tv1: PVector = v1.normalized()
     tv2: PVector = v2.normalized()
