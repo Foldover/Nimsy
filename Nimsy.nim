@@ -1,7 +1,7 @@
 
 import PVector
 import PShape
-import Nimsydrawing
+import Nimsyprimitives
 import Nimsygl
 
 #export nimsygl symbols
@@ -13,7 +13,10 @@ export Nimsygl.mouseY
 export Nimsygl.size
 export Nimsygl.setSetup
 export Nimsygl.setDraw
+export Nimsygl.setMouseKeyEvent
+export Nimsygl.setKeyboardEvent
 export Nimsygl.loop
+export Nimsygl.noLoop
 export Nimsygl.background
 export Nimsygl.strokeWeight
 export Nimsygl.noStroke
@@ -21,6 +24,9 @@ export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
 export Nimsygl.line
+
+#export Nimsyprimitives symbols
+export Nimsyprimitives.circle
 
 #export PVector symbols
 export PVector.newPVector

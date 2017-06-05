@@ -5,46 +5,44 @@ import glut
 import opengl
 import glu
 import PShape
+import math
 
 var
   s = newPShape()
   modx = 0.0
+
 proc setup() =
   size(500, 500)
 
-  s.beginShape()
-  s.vertex(100, 100, 0)
-  s.vertex(200, 100, 0)
-  s.vertex(150, 200, 0)
-  s.endShape()
-
 proc draw() {.cdecl.} =
-  #glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-  #FIXME remove this = glMatrixMode(GL_MODELVIEW)                          # To operate on model-view matrix
-  #FIXME remove this = glLoadIdentity()                 # Reset the model-view matrix
   background(0.0, 0.0, 0.0, 1.0)
+  stroke(1.0, 1.0, 1.0, 0.4)
 
-  s.beginShape()
-  s.vertex(100, 100, 0)
-  s.vertex(150, 150, 0)
-  s.vertex(200, 100, 0)
-  s.vertex(200, 200, 0)
-  s.vertex(100, 200, 0)
-  s.vertex(140, 150, 0)
-  s.vertex(100, 100, 0)
-  s.endShape()
-  s.shape()
+  circle(150 + cos(modx) * 100, 150 + sin(modx) * 100, 30)
 
-  stroke(1.0, 1.0, 1.0, 0.1)
-  fill(1.0, 1.0, 1.0, 1.0)
+  # s.beginShape()
+  # s.vertex(100 + modx, 100, 0)
+  # s.vertex(150, 150, 0)
+  # s.vertex(200, 100, 0)
+  # s.vertex(200, 200, 0)
+  # s.vertex(100, 200, 0)
+  # s.vertex(110, 150, 0)
+  # s.endShape()
+  # s.shape()
+
   strokeWeight(5.0)
-  line(modx, 0.0, modx + 100.0, 200.0)
-  modx += 1
+  line(0.0, 0.0, 100.0, 200.0)
 
-  echo "mouseX: ", mouseX(), "; mouseY: ", mouseY()
+  modx += 0.05
 
-  glutSwapBuffers() # Swap the front and back frame buffers (double buffering)
+proc mouseE(button: int, state: int, x: int, y: int) =
+  echo "Mouse!"
+
+proc keyE(key: char, x, y: int) =
+  echo "Keyboard!"
 
 setSetup(setup)
 setDraw(draw)
+setMouseKeyEvent(mouseE)
+setKeyboardEvent(keyE)
 start()

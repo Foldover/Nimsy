@@ -66,19 +66,31 @@ proc shader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
   Enums needed to let the shaders now how they should operate on our vertices.
 ]#
 type
-  DrawingModes {.pure.} = enum
+  DrawingModes* {.pure.} = enum
     LINE, POLYGON
+
+#[
+  Variables directly available outside of the module
+]#
+const
+  tessRes*: int = 32
+  PI*: float = 3.14159265359
+  TWO_PI*: float = 6.28318530718
+  HALF_PI*: float = 1.57079632679
+  QUARTER_PI*: float = 0.78539816339
 
 #[
   Variables that aren't directly available outside of the module,
   but have getter procedures.
 ]#
 var
+  #General opengl vars
   mWidth: float
   mHeight: float
+
+  #Inputs
   mMouseX: int
   mMouseY: int
-  windowID: int
 
 #[
   These variables are not to be messed with outside this module.
@@ -86,8 +98,12 @@ var
 ]#
 
 var
+  #General opengl vars
+  mainWindowID: int
+
   #Main loop related
-  msInFrame: float = 1000.0 / 30.0
+  msInFrame: float = 1000.0 / 60.0
+  bLOOP: bool
 
   #Rendering variables.
   FILL: bool = true
@@ -107,11 +123,13 @@ var
   vertexWidthLocation: GLint
   vertexNormalLocation: GLint
   vertexPositionLocation: GLint
-  drawingModeLocation: GLint
+  drawingModeLocation*: GLint
 
   #Procedure references. These are used to run the users program.
   setupProcedure: proc()
   drawProcedure: proc() {.cdecl.}
+  mouseKeyProcedure: proc(button: int, state: int, x: int, y: int)
+  keyboardKeyProcedure: proc(key: char, x, y: int)
 
 #[
   These are getter procedures available to Nimsy users.
@@ -147,7 +165,9 @@ proc mainLoop() =
   while (glutGetWindow() != 0):
     let t1 = epochTime() / 1000.0
     glutMainLoopEvent()
-    drawProcedure()
+    if(bLOOP):
+      drawProcedure()
+      glutSwapBuffers()
     let t2 = epochTime() / 1000.0
     var msDiff = msInFrame - (t2 - t1)
     if msDiff < 0.0:
@@ -162,6 +182,13 @@ proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
   mMouseX = mx
   mMouseY = my
 
+proc mouseKeyProc(button, state, x, y: cint) {.cdecl.} =
+  if mouseKeyProcedure != nil:
+    mouseKeyProcedure(int(button), int(state), int(x), int(y))
+
+proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
+  if keyboardKeyProcedure != nil:
+    keyboardKeyProcedure(char(key), int(x), int(y))
 #[
   Procedures available to Nimsy users
 ]#
@@ -169,17 +196,22 @@ proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
 #FIXME: Sometimes the program fails to compile. Investigate this
 proc start*(name: cstring = "Nimsy App") =
   glutInit()
-  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL)
+  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH)
   glutInitWindowSize(int(300), int(300))
   glutInitWindowPosition(50, 50)
-  windowID = glutCreateWindow(name)
+  mainWindowID = glutCreateWindow(name)
 
   #Setup opengl callbacks
   if drawProcedure != nil:
+    bLOOP = true
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
+  else:
+    bLOOP = false
 
   glutMotionFunc(TGlut2IntCallback(mouseMotionProc))
   glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
+  glutMouseFunc(TGlut4IntCallback(mouseKeyProc))
+  glutKeyboardFunc(TGlut1Char2IntCallback(keyboardKeyProc))
 
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high
@@ -195,7 +227,7 @@ proc start*(name: cstring = "Nimsy App") =
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
   glEnable(GL_DEPTH_TEST)
-  glEnable(GL_STENCIL_TEST)
+  #glEnable(GL_STENCIL_TEST)
   glEnable(GL_BLEND)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
@@ -237,10 +269,19 @@ proc setSetup*(procedure: proc()) =
 proc setDraw*(procedure: proc() {.cdecl.}) =
   drawProcedure = procedure
 
-proc loop*(procedure: TGlutVoidCallback) =
-  glutIdleFunc(procedure)
+proc setMouseKeyEvent*(procedure: proc(button: int, state: int, x: int, y: int)) =
+  mouseKeyProcedure = procedure
 
-#TODO: add a noLoop*() procedure
+proc setKeyboardEvent*(procedure: proc(key: char, x, y: int)) =
+  keyboardKeyProcedure = procedure
+
+proc loop*() =
+  if drawProcedure != nil:
+    bLOOP = true
+    glutIdleFunc(TGlutVoidCallback(drawProcedure))
+
+proc noLoop*() =
+  bLOOP = false
 
 proc background*(r, g, b, a: float) =
   glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)

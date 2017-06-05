@@ -35,6 +35,7 @@ proc endShape*(s: PShape) =
     discard
 
 proc shape*(s: PShape) =
+  #FIXME: When drawing other stuff on the shape, the stencil test appears to be influenced.
   var
     pointer_modelView: ptr = model_view.caddr
     pointer_projection: ptr = projection.caddr
@@ -45,7 +46,7 @@ proc shape*(s: PShape) =
   glDepthMask(GL_FALSE);
   glEnable(GL_STENCIL_TEST);
   glStencilFunc(GL_ALWAYS,0x1,0x1);
-  glStencilOp(GL_KEEP,GL_KEEP,GL_INVERT);
+  glStencilOp(GL_KEEP,GL_INVERT,GL_INVERT);
   glBegin(GL_TRIANGLE_FAN)
   for v in s.vertices:
     glVertex2f(v.x, v.y)
@@ -54,7 +55,7 @@ proc shape*(s: PShape) =
   glDepthMask(GL_TRUE);
   glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   glStencilFunc(GL_EQUAL,0x1,0x1);
-  glStencilOp(GL_KEEP,GL_KEEP,GL_KEEP);
+  glStencilOp(GL_KEEP,GL_KEEP,GL_INVERT);
   glBegin(GL_TRIANGLE_FAN)
   for v in s.vertices:
     glVertex2f(v.x, v.y)

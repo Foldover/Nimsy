@@ -14,7 +14,7 @@ import random
 import math
 
 type
-  PVector = ref object of RootObj
+  PVector* = ref object of RootObj
     x*: float
     y*: float
     z*: float
