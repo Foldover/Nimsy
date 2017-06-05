@@ -4,7 +4,7 @@ import glu
 import glm
 import math
 import random
-import typetraits
+import times, os
 
 include PVector
 
@@ -85,6 +85,9 @@ var
 ]#
 
 var
+  #Main loop related
+  msInFrame: float = 1000.0 / 30.0
+
   #Rendering variables.
   FILL: bool = true
   STROKE: bool = true
@@ -143,20 +146,34 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   Procedures available to Nimsy users
 ]#
 
+proc mainLoop() =
+  while (glutGetWindow() != 0):
+    let t1 = epochTime() / 1000.0
+    #do something
+
+    glutMainLoopEvent()
+    drawProcedure()
+    let t2 = epochTime() / 1000.0
+    var msDiff = msInFrame - (t2 - t1)
+    if msDiff < 0.0:
+      msDiff = 0.0
+    sleep(int(msDiff))
+
 #FIXME: Sometimes the program fails to compile. Investigate this
 proc start*(name: cstring = "Nimsy App") =
+  glutInit()
+  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL)
+  glutInitWindowSize(int(300), int(300))
+  glutInitWindowPosition(50, 50)
+  windowID = glutCreateWindow(name)
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high
   #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
 
-  if setupProcedure == nil:
+  if setupProcedure != nil:
+    setupProcedure()
+  else:
     echo "You must define and supply a setup procedure"
-
-  glutInit()
-  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL)
-  glutInitWindowSize(int(mWidth), int(mHeight))
-  glutInitWindowPosition(50, 50)
-  windowID = glutCreateWindow(name)
 
   glutReshapeFunc(reshape)
   loadExtensions()
@@ -194,7 +211,7 @@ proc start*(name: cstring = "Nimsy App") =
 
   if drawProcedure != nil:
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
-  glutMainLoop()
+  mainLoop()
 
 proc setDrawingMode*(dm: DrawingModes) =
   glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(dm))
@@ -205,7 +222,6 @@ proc setDrawingMode*(dm: DrawingModes) =
 proc size*(width, height: float) =
   mWidth = width
   mHeight = height
-  start()
 
 proc setSetup*(procedure: proc()) =
   setupProcedure = procedure
@@ -219,9 +235,8 @@ proc loop*(procedure: TGlutVoidCallback) =
 #TODO: add a noLoop*() procedure
 
 proc background*(r, g, b, a: float) =
-  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+  glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
   glClearColor(r, g, b, a)
-
 
 proc strokeWeight*(width: float) =
   vertexWidthLocation = glGetUniformLocation(activeShader.ID, "u_linewidth")
@@ -261,7 +276,7 @@ proc useFillColor*() =
 ]#
 
 proc line*(x1, y1, x2, y2: float) =
-  #setup pointers for the transformation matrices.
+  #TODO: Should be globally accessible: setup pointers for the transformation matrices.
   var
     pointer_modelView: ptr = model_view.caddr
     pointer_projection: ptr = projection.caddr

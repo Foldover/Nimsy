@@ -5,6 +5,7 @@ import Nimsydrawing
 import Nimsygl
 
 #export nimsygl symbols
+export Nimsygl.start
 export Nimsygl.width
 export Nimsygl.height
 export Nimsygl.mouseX
