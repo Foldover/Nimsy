@@ -5,6 +5,7 @@ import glm
 import math
 import random
 import times, os
+import NimsyglCallbacks
 
 include PVector
 
@@ -75,8 +76,8 @@ type
 var
   mWidth: float
   mHeight: float
-  mMouseX: float
-  mMouseY: float
+  mMouseX: int
+  mMouseY: int
   windowID: int
 
 #[
@@ -122,10 +123,10 @@ proc width*(): float {.inline.} =
 proc height*(): float {.inline.} =
   return mHeight
 
-proc mouseX*(): float {.inline.} =
+proc mouseX*(): int {.inline.} =
   return mMouseX
 
-proc mouseY*(): float {.inline.} =
+proc mouseY*(): int {.inline.} =
   return mMouseY
 
 #[
@@ -142,15 +143,9 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   glOrtho(0, GLdouble(width), GLdouble(height), 0, -1.0, 1.0);
   projection = mat4f(ortho(0.0, float(width), float(height), 0.0, -1.0, 1.0))
 
-#[
-  Procedures available to Nimsy users
-]#
-
 proc mainLoop() =
   while (glutGetWindow() != 0):
     let t1 = epochTime() / 1000.0
-    #do something
-
     glutMainLoopEvent()
     drawProcedure()
     let t2 = epochTime() / 1000.0
@@ -159,6 +154,18 @@ proc mainLoop() =
       msDiff = 0.0
     sleep(int(msDiff))
 
+proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
+  mMouseX = mx
+  mMouseY = my
+
+proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
+  mMouseX = mx
+  mMouseY = my
+
+#[
+  Procedures available to Nimsy users
+]#
+
 #FIXME: Sometimes the program fails to compile. Investigate this
 proc start*(name: cstring = "Nimsy App") =
   glutInit()
@@ -166,10 +173,17 @@ proc start*(name: cstring = "Nimsy App") =
   glutInitWindowSize(int(300), int(300))
   glutInitWindowPosition(50, 50)
   windowID = glutCreateWindow(name)
+
+  #Setup opengl callbacks
+  if drawProcedure != nil:
+    glutIdleFunc(TGlutVoidCallback(drawProcedure))
+
+  glutMotionFunc(TGlut2IntCallback(mouseMotionProc))
+  glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
+
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high
   #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
-
   if setupProcedure != nil:
     setupProcedure()
   else:
@@ -203,14 +217,8 @@ proc start*(name: cstring = "Nimsy App") =
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
 
-  #ideally start() should be called by the user. Here setupProcedure would be
-  #called, and an already initialized window would be resized through size()
-  #(if it is called by the user in setupProcedure). This doesn't appear to work
-  #now and might be a bug in freeglut
   #TODO: prevent user from calling size() more than once
 
-  if drawProcedure != nil:
-    glutIdleFunc(TGlutVoidCallback(drawProcedure))
   mainLoop()
 
 proc setDrawingMode*(dm: DrawingModes) =

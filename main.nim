@@ -41,6 +41,8 @@ proc draw() {.cdecl.} =
   line(modx, 0.0, modx + 100.0, 200.0)
   modx += 1
 
+  echo "mouseX: ", mouseX(), "; mouseY: ", mouseY()
+
   glutSwapBuffers() # Swap the front and back frame buffers (double buffering)
 
 setSetup(setup)
