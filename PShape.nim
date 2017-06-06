@@ -3,6 +3,7 @@
 ]#
 
 import Nimsygl
+import Nimsyprimitives
 import glut
 import opengl
 import glu
@@ -10,9 +11,9 @@ import glm
 
 type
   Vertex = ref object of RootObj
-    x: float
-    y: float
-    z: float
+    x*: float
+    y*: float
+    z*: float
 
 type
   PShape = ref object of RootObj
@@ -33,6 +34,9 @@ proc vertex*(s: PShape, x, y, z: float) =
 proc endShape*(s: PShape) =
   if(true):
     discard
+
+proc getVertexCount*(s: PShape) : int =
+  return s.vlen
 
 proc shape*(s: PShape) =
   #FIXME: When drawing other stuff on the shape, the stencil test appears to be influenced.
@@ -61,3 +65,6 @@ proc shape*(s: PShape) =
     glVertex2f(v.x, v.y)
   glEnd()
   glDisable(GL_STENCIL_TEST);
+
+  for n in 1..s.getVertexCount()-1:
+    line(s.vertices[n-1].x, s.vertices[n-1].y, s.vertices[n].x, s.vertices[n].y)

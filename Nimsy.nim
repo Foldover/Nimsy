@@ -23,7 +23,6 @@ export Nimsygl.noStroke
 export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
-export Nimsygl.PI
 export Nimsygl.TWO_PI
 export Nimsygl.HALF_PI
 export Nimsygl.QUARTER_PI
@@ -60,3 +59,4 @@ export PShape.vertex
 export PShape.beginShape
 export PShape.endShape
 export PShape.shape
+export PShape.getVertexCount

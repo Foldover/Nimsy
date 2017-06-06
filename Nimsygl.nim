@@ -74,10 +74,9 @@ type
 ]#
 const
   tessRes*: int = 32
-  PI*: float = 3.14159265359
-  TWO_PI*: float = 6.28318530718
-  HALF_PI*: float = 1.57079632679
-  QUARTER_PI*: float = 0.78539816339
+  TWO_PI*: float = PI*2.0
+  HALF_PI*: float = PI/2.0
+  QUARTER_PI*: float = PI/4.0
 
 var
   lw*: float

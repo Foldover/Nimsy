@@ -25,9 +25,8 @@ void main() {
   }
   else
   {
-    vec4 delta = vec4(a_normal * u_linewidth, 0, 0);
     vec4 pos = u_mv_matrix * vec4(a_pos, 0, 1);
-    gl_Position = u_p_matrix * (pos + delta);
+    gl_Position = u_p_matrix * pos;
     e_o_drawing_mode = e_i_drawing_mode;
   }
 }

@@ -32,10 +32,10 @@ proc circle*(cx, cy, r: float) =
   glEnd()
 
 proc arc*(cx, cy, r, sa, ea: float) =
-  let inc: float = (ea-sa) / float(tessRes)
+  let inc: float = abs(ea-sa) / float(tessRes)
   var
     phase: float = sa
-    v: array[tessRes, tuple[x: float, y: float]]
+    v: array[tessRes+1, tuple[x: float, y: float]]
 
   var
     pointer_modelView: ptr = model_view.caddr
@@ -45,16 +45,16 @@ proc arc*(cx, cy, r, sa, ea: float) =
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   #glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.POLYGON))
   useStrokeColor()
-  for n in 0..tessRes-1:
+  for n in 0..tessRes:
     let
       x = cx + r*cos(phase)
       y = cy + r*sin(phase)
-    phase -= inc
+    phase += inc
     v[n][0] = x
     v[n][1] = y
   glBegin(GL_TRIANGLE_FAN)
   glVertex2f(cx, cy)
-  for n in 0..tessRes-1:
+  for n in 0..tessRes:
     glVertex2f(v[n][0], v[n][1])
   glEnd()
 
@@ -96,14 +96,7 @@ proc line*(x1, y1, x2, y2: float) =
   glVertex2f(x2, y2)
   glEnd()
 
-  let
-    m1 = sqrt(x1*x1 + y1*y1)
-    m2 = sqrt(x2*x2 + y2*y2)
-    nx1 = x1 / m1
-    ny1 = y1 / m1
-    nx2 = x2 / m2
-    ny2 = y2 / m2
-    dot = nx1*nx2 + ny1*ny2
-    ddot = (1.0 - (dot + 1.0) * 0.5) - Nimsygl.HALF_PI
-  arc(x1, y1-lw, lw, ddot+Nimsygl.PI, ddot)
-  arc(x2, y2-lw, lw, ddot, ddot+Nimsygl.PI)
+  let a = arctan2(norm1.y, norm1.x)
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+  arc(x1, y1, lw, a, a+PI)
+  arc(x2, y2, lw, a+PI, a)
