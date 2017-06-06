@@ -116,6 +116,9 @@ var
   #Shader matrices.
   model_view* = mat4f(1.0)
   projection*: Mat4x4[float32]
+  p_model_view: Mat4x4[float32]
+  p_projection: Mat4x4[float32]
+  mat_pushed = false
 
   #Shader locations.
   modelViewLocation*: GLint
@@ -322,3 +325,23 @@ proc fill*(r, g, b, a: float) =
 proc useFillColor*() =
   fragmentFillColorLocation = glGetUniformLocation(activeShader.ID, "fill_color")
   glUniform4f(fragmentFillColorLocation, color_fill[0], color_fill[1], color_fill[2], color_fill[3])
+
+proc pushMatrix*() =
+  if not pushed:
+    p_model_view = model_view
+    p_projection = projection
+    mat_pushed = true
+
+proc popMatrix*() =
+  if pushed:
+    model_view = p_model_view
+    projection = p_projection
+    pushed = false
+
+proc translate*(x, y: int) =
+  model_view = translate[float32](model_view, vec3(float[x], float[y], 0.0))
+  projection = translate[float32](projection, vec3(float[x], float[y], 0.0))
+
+proc rotate*(angle: float) =
+  model_view = rotate[float32](model_view, vec3(0, 0, 1), angle)
+  projection = rotate[float32](projection, vec3(0, 0, 1), angle)
