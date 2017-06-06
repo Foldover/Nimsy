@@ -23,10 +23,15 @@ export Nimsygl.noStroke
 export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
-export Nimsygl.line
+export Nimsygl.PI
+export Nimsygl.TWO_PI
+export Nimsygl.HALF_PI
+export Nimsygl.QUARTER_PI
 
 #export Nimsyprimitives symbols
 export Nimsyprimitives.circle
+export Nimsyprimitives.arc
+export Nimsyprimitives.line
 
 #export PVector symbols
 export PVector.newPVector

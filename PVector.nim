@@ -111,9 +111,10 @@ proc rotated*(v: PVector, angle: float): PVector =
   return PVector(x: (v.x*cs - v.y*sn), y: (v.x*sn + v.y*cs), z: v.z)
 
 proc angleBetween*(v1, v2: PVector): float =
-  var
+  let
     tv1: PVector = v1.normalized()
     tv2: PVector = v2.normalized()
+  var
     mapdot: float = (1.0 - (tv1.dot(tv2) + 1.0) * 0.5)
 
   return mapdot * 180.0

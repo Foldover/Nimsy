@@ -79,6 +79,9 @@ const
   HALF_PI*: float = 1.57079632679
   QUARTER_PI*: float = 0.78539816339
 
+var
+  lw*: float
+
 #[
   Variables that aren't directly available outside of the module,
   but have getter procedures.
@@ -120,10 +123,11 @@ var
   projectionLocation*: GLint
   fragmentStrokeColorLocation: GLint
   fragmentFillColorLocation: GLint
-  vertexWidthLocation: GLint
-  vertexNormalLocation: GLint
-  vertexPositionLocation: GLint
+  vertexWidthLocation*: GLint
+  vertexNormalLocation*: GLint
+  vertexPositionLocation*: GLint
   drawingModeLocation*: GLint
+  s_lineLenLocation*: GLint
 
   #Procedure references. These are used to run the users program.
   setupProcedure: proc()
@@ -248,7 +252,7 @@ proc start*(name: cstring = "Nimsy App") =
   vertexNormalLocation = glGetAttribLocation(activeShader.ID, "a_normal")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
-
+  s_lineLenLocation = glGetUniformLocation(activeShader.ID, "u_linelen")
   #TODO: prevent user from calling size() more than once
 
   mainLoop()
@@ -290,6 +294,7 @@ proc background*(r, g, b, a: float) =
 proc strokeWeight*(width: float) =
   vertexWidthLocation = glGetUniformLocation(activeShader.ID, "u_linewidth")
   glUniform1f(vertexWidthLocation, width)
+  lw = width
 
 proc noStroke*() =
   STROKE = false
@@ -318,42 +323,3 @@ proc fill*(r, g, b, a: float) =
 proc useFillColor*() =
   fragmentFillColorLocation = glGetUniformLocation(activeShader.ID, "fill_color")
   glUniform4f(fragmentFillColorLocation, color_fill[0], color_fill[1], color_fill[2], color_fill[3])
-
-#[
-  Primitive drawing.
-  #TODO: Move Primitive drawing to separate module.
-]#
-
-proc line*(x1, y1, x2, y2: float) =
-  #TODO: Should be globally accessible: setup pointers for the transformation matrices.
-  var
-    pointer_modelView: ptr = model_view.caddr
-    pointer_projection: ptr = projection.caddr
-
-  #pass transformation matrices to shader.
-  glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
-  glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
-  glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.LINE))
-
-  useStrokeColor()
-
-  #calculate normals. This is needed to draw variable-width lines.
-  var norm1 = vec2(x2 - x1, y2 - y1)
-  norm1 = normalize(norm1)
-  var norm2 = norm1
-  let ntx = norm1.x
-  norm1.x = -norm1.y
-  norm1.y = ntx
-  norm2.x = norm2.y
-  norm2.y = -ntx
-  glBegin(GL_TRIANGLES)
-  glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(norm1.x), GLfloat(norm1.y))
-  glVertex2f(x1, y1)
-  glVertex2f(x2, y2)
-  glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(norm2.x), GLfloat(norm2.y))
-  glVertex2f(x1, y1)
-  glVertex2f(x2, y2)
-  glVertex2f(x1, y1)
-  glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(norm1.x), GLfloat(norm1.y))
-  glVertex2f(x2, y2)
-  glEnd()
