@@ -1,3 +1,5 @@
+import Nimsytypes
+import Nimsyglobals
 import Nimsygl
 import math
 import glm

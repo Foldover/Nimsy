@@ -5,19 +5,13 @@ import glm
 import math
 import random
 import times, os
-import NimsyglCallbacks
-
-include PVector
+import Nimsytypes
+import Nimsyglobals
 
 #[
   Shader code is temporarily here.
   #TODO: Move shader code to separate module.
 ]#
-
-type
-  Shader = ref object of RootObj
-    ID* : GLuint
-var activeShader: Shader
 
 proc logShader(shader: GLuint) =
    var length: GLint = 0
@@ -63,13 +57,6 @@ proc shader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
   glUseProgram(s.ID)
 
 #[
-  Enums needed to let the shaders now how they should operate on our vertices.
-]#
-type
-  DrawingModes* {.pure.} = enum
-    LINE, POLYGON
-
-#[
   Variables directly available outside of the module
 ]#
 const
@@ -77,9 +64,6 @@ const
   TWO_PI*: float = PI*2.0
   HALF_PI*: float = PI/2.0
   QUARTER_PI*: float = PI/4.0
-
-var
-  lw*: float
 
 #[
   Variables that aren't directly available outside of the module,
@@ -327,21 +311,21 @@ proc useFillColor*() =
   glUniform4f(fragmentFillColorLocation, color_fill[0], color_fill[1], color_fill[2], color_fill[3])
 
 proc pushMatrix*() =
-  if not pushed:
+  if not mat_pushed:
     p_model_view = model_view
     p_projection = projection
     mat_pushed = true
 
 proc popMatrix*() =
-  if pushed:
+  if mat_pushed:
     model_view = p_model_view
     projection = p_projection
-    pushed = false
+    mat_pushed = false
 
-proc translate*(x, y: int) =
-  model_view = translate[float32](model_view, vec3(float[x], float[y], 0.0))
-  projection = translate[float32](projection, vec3(float[x], float[y], 0.0))
-
-proc rotate*(angle: float) =
-  model_view = rotate[float32](model_view, vec3(0, 0, 1), angle)
-  projection = rotate[float32](projection, vec3(0, 0, 1), angle)
+# proc translate*(x, y: int) =
+#   model_view = translate(model_view, vec3(float(x), float(y), 0.0))
+#   projection = translate(projection, vec3(float(x), float(y), 0.0))
+#
+# proc rotate*(angle: float) =
+#   model_view = rotate(model_view, vec3(0, 0, 1), angle)
+#   projection = rotate(projection, vec3(0, 0, 1), angle)

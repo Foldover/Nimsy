@@ -4,7 +4,7 @@ import Nimsy
 import glut
 import opengl
 import glu
-import PShape
+import NimsyPShape
 import math
 
 var
@@ -29,7 +29,7 @@ proc draw() {.cdecl.} =
   s.vertex(100, 100, 0)
   s.endShape()
   s.shape()
-  modx += 0.1
+  modx += 0.0
 
 proc mouseE(button: int, state: int, x: int, y: int) =
   echo "Mouse!"

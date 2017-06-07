@@ -12,12 +12,7 @@
 
 import random
 import math
-
-type
-  PVector* = ref object of RootObj
-    x*: float
-    y*: float
-    z*: float
+from Nimsytypes import PVector
 
 proc newPVector*(x, y, z: float): PVector =
   return PVector(x: 0, y: 0, z: 0)
@@ -40,23 +35,68 @@ proc magSq*(v: PVector): float =
 proc mag*(v: PVector): float =
   return sqrt(v.magSq())
 
-proc add*(v1, v2: PVector): PVector =
-  return PVector(x: v1.x+v2.x, y: v1.y+v2.y, z: v1.z+v2.z)
+proc `+`(v1, v2: PVector): PVector =
+  return PVector(x: v1.x+v2.x,
+                  y: v1.y+v2.y,
+                  z: v1.z+v2.z)
+
+proc `-`(v1, v2: PVector): PVector =
+  return PVector(x: v1.x-v2.x,
+                  y: v1.y-v2.y,
+                  z: v1.z-v2.z)
+
+proc `*`(v1, v2: PVector): PVector =
+  return PVector(x: v1.x*v2.x,
+                  y: v1.y*v2.y,
+                  z: v1.z*v2.z)
+
+proc `/`(v1, v2: PVector): PVector =
+  return PVector(x: v1.x/v2.x,
+                  y: v1.y/v2.y,
+                  z: v1.z/v2.z)
+
+proc `*`(v1: PVector, s: float): PVector =
+  return PVector(x: v1.x*s,
+                  y: v1.y*s,
+                  z: v1.z*s)
+
+proc `/`(v1: PVector, s: float): PVector =
+  return PVector(x: v1.x/s,
+                  y: v1.y/s,
+                  z: v1.z/s)
+
+proc add*(v1, v2: PVector) =
+  v1.x += v2.x
+  v1.y += v2.y
+  v1.z += v2.z
 
 #TODO: implement more adding, subbing, multiplying and dividing procedures
 
-proc sub*(v1, v2: PVector): PVector =
-  return PVector(x: v1.x-v2.x, y: v1.y-v2.y, z: v1.z-v2.z)
+proc sub*(v1, v2: PVector) =
+  v1.x -= v2.x
+  v1.y -= v2.y
+  v1.z -= v2.z
 
-proc mult*(v1, v2: PVector): PVector =
-  return PVector(x: v1.x*v2.x, y: v1.y*v2.y, z: v1.z*v2.z)
+proc mult*(v1, v2: PVector) =
+  v1.x *= v2.x
+  v1.y *= v2.y
+  v1.z *= v2.z
 
-proc mult*(v1: PVector, s: float): PVector =
-  return PVector(x: v1.x*s, y: v1.y*s, z: v1.z*s)
+proc mult*(v1: PVector, s: float) =
+  v1.x *= s
+  v1.y *= s
+  v1.z *= s
 
 #CONSIDERATION: div is a keyword in nim. Maybe have full names for every vector operation? (for consistency)
-proc divide*(v1, v2: PVector): PVector =
-  return PVector(x: v1.x/v2.x, y: v1.y/v2.y, z: v1.z/v2.z)
+proc divide*(v1, v2: PVector) =
+  v1.x /= v2.x
+  v1.y /= v2.y
+  v1.z /= v2.z
+
+proc divide*(v1: PVector, s: float) =
+  v1.x /= s
+  v1.y /= s
+  v1.z /= s
 
 proc dist*(v1, v2: PVector): float =
   var
@@ -80,6 +120,12 @@ proc normalized*(v: PVector): PVector =
   var m: float = v.mag
   return PVector(x: v.x/m, y: v.y/m, z: v.z/m)
 
+proc normalize*(v: PVector) =
+  var m: float = v.mag
+  v.x = v.x/m
+  v.y = v.y/m
+  v.z = v.z/m
+
 proc limited*(v: PVector, max: float): PVector =
   var
     tx: float = v.x
@@ -94,7 +140,7 @@ proc limited*(v: PVector, max: float): PVector =
   return PVector(x: tx, y: ty, z: tz)
 
 proc setMag*(v: PVector, len: float): PVector =
-  return v.normalized().mult(len)
+  return v.normalized() * len
 
 proc heading*(v: PVector): float =
   var
@@ -110,6 +156,14 @@ proc rotated*(v: PVector, angle: float): PVector =
     sn: float = sin(angle)
   return PVector(x: (v.x*cs - v.y*sn), y: (v.x*sn + v.y*cs), z: v.z)
 
+proc rotate*(v: PVector, angle: float) =
+  var
+    cs: float = cos(angle)
+    sn: float = sin(angle)
+  v.x = (v.x*cs - v.y*sn)
+  v.y = (v.x*sn + v.y*cs)
+  v.z = v.z
+
 proc angleBetween*(v1, v2: PVector): float =
   let
     tv1: PVector = v1.normalized()
@@ -118,3 +172,22 @@ proc angleBetween*(v1, v2: PVector): float =
     mapdot: float = (1.0 - (tv1.dot(tv2) + 1.0) * 0.5)
 
   return mapdot * 180.0
+
+proc normal*(v1: PVector): PVector =
+  var nv = v1
+  nv.normalize()
+  let tx = nv.x
+  nv.x = nv.y
+  nv.y = -tx
+  return nv
+
+proc normal*(v1, v2: PVector): PVector =
+  var nv = v2 - v1
+  nv.normalize()
+  let tx = nv.x
+  nv.x = nv.y
+  nv.y = -tx
+  return nv
+
+proc tangent3*(v1, v2, v3: PVector): PVector =
+  return ((v3-v2).normalized() + (v2-v1).normalized()).normalized()
