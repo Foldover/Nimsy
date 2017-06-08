@@ -23,13 +23,13 @@ proc draw() {.cdecl.} =
   s.vertex(100, 100, 0)
   s.vertex(150, 150, 0)
   s.vertex(200, 100, 0)
-  s.vertex(200+modx, 200, 0)
+  s.vertex(200, 200, 0)
   s.vertex(150, 240, 0)
   s.vertex(100, 200, 0)
   s.vertex(100, 100, 0)
   s.endShape()
   s.shape()
-  modx += 0.0
+  modx += 0.1
 
 proc mouseE(button: int, state: int, x: int, y: int) =
   echo "Mouse!"

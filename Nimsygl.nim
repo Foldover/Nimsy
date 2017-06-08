@@ -236,6 +236,7 @@ proc start*(name: cstring = "Nimsy App") =
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   vertexNormalLocation = glGetAttribLocation(activeShader.ID, "a_normal")
+  vertexMiterLocation = glGetAttribLocation(activeShader.ID, "a_miter")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
   s_lineLenLocation = glGetUniformLocation(activeShader.ID, "u_linelen")

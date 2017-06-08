@@ -38,7 +38,7 @@ proc shape*(s: PShape) =
     pointer_projection: ptr = projection.caddr
 
   useStrokeColor()
-  #glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
@@ -61,40 +61,35 @@ proc shape*(s: PShape) =
   glEnd()
   glDisable(GL_STENCIL_TEST);
 
+  var miters = newSeq[PVector]()
   var normals = newSeq[PVector]()
-  for n in 0..s.getVertexCount() - 1:
+  for n in 0..s.vertices.high-1:
     if n == 0:
-      let tan = tangent3(s.vertices[s.getVertexCount() - 1], s.vertices[n], s.vertices[n+1])
-      normals.insert(normal(tan), 0)
-    elif n == s.getVertexCount() - 1:
+      let tan = tangent3(s.vertices[s.vertices.high-1], s.vertices[n], s.vertices[n+1])
+      miters.add(normal(tan))
+      normals.add(normal(s.vertices[n], s.vertices[n+1]))
+    elif n == s.vertices.high-1:
       let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[0])
-      normals.insert(normal(tan), n-1)
+      miters.add(normal(tan))
+      normals.add(normal(s.vertices[n], s.vertices[n+1]))
     else:
       let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
-      normals.insert(normal(tan), n-1)
+      miters.add(normal(tan))
+      normals.add(normal(s.vertices[n], s.vertices[n+1]))
 
-  glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.LINE))
-  for n in 0..s.getVertexCount() - 1:
-    glBegin(GL_TRIANGLES)
-
-    if n == s.getVertexCount() - 1:
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[n].x), GLfloat(normals[n].y))
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-      glVertex2f(s.vertices[0].x, s.vertices[0].y)
-      glVertex2f(s.vertices[0].x, s.vertices[0].y)
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
-      glVertex2f(s.vertices[0].x, s.vertices[0].y)
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-    else:
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[n].x), GLfloat(normals[n].y))
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-      glVertex2f(s.vertices[n+1].x, s.vertices[n+1].y)
-      glVertex2f(s.vertices[n+1].x, s.vertices[n+1].y)
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
-      glVertex2f(s.vertices[n+1].x, s.vertices[n+1].y)
-      glVertex2f(s.vertices[n].x, s.vertices[n].y)
-    glEnd()
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.PATH))
+  glBegin(GL_QUAD_STRIP)
+  for n in 0..s.vertices.high-1:
+    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-miters[n].x), GLfloat(-miters[n].y))
+    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
+    glVertex2f(s.vertices[n].x, s.vertices[n].y)
+    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(miters[n].x), GLfloat(miters[n].y))
+    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[n].x), GLfloat(normals[n].y))
+    glVertex2f(s.vertices[n].x, s.vertices[n].y)
+  glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-miters[0].x), GLfloat(-miters[0].y))
+  glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[0].x), GLfloat(-normals[0].y))
+  glVertex2f(s.vertices[0].x, s.vertices[0].y)
+  glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(miters[0].x), GLfloat(miters[0].y))
+  glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[0].x), GLfloat(normals[0].y))
+  glVertex2f(s.vertices[0].x, s.vertices[0].y)
+  glEnd()

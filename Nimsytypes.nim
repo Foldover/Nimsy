@@ -32,4 +32,4 @@ type
 
 type
   DrawingModes* {.pure.} = enum
-    LINE, POLYGON
+    LINE, PATH, POLYGON
