@@ -1,8 +1,13 @@
-
+import Nimsyglobals
 import NimsyPVector
 import NimsyPShape
 import Nimsyprimitives
 import Nimsygl
+
+#export global symbols
+export Nimsyglobals.TWO_PI
+export Nimsyglobals.HALF_PI
+export Nimsyglobals.QUARTER_PI
 
 #export nimsygl symbols
 export Nimsygl.start
@@ -13,6 +18,7 @@ export Nimsygl.mouseY
 export Nimsygl.size
 export Nimsygl.setSetup
 export Nimsygl.setDraw
+export Nimsygl.setMouseDragged
 export Nimsygl.setMouseKeyEvent
 export Nimsygl.setKeyboardEvent
 export Nimsygl.loop
@@ -23,9 +29,6 @@ export Nimsygl.noStroke
 export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
-export Nimsygl.TWO_PI
-export Nimsygl.HALF_PI
-export Nimsygl.QUARTER_PI
 
 #export Nimsyprimitives symbols
 export Nimsyprimitives.circle

@@ -24,6 +24,7 @@ type
 type
   PShape* = ref object of RootObj
     vertices*: seq[PVector]
+    pathVertices*: seq[PVector]
     vlen*: int
 
 type

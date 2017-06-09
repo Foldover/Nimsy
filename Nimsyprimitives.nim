@@ -8,20 +8,20 @@ import opengl
 import glu
 
 proc circle*(cx, cy, r: float) =
-  let inc: float = TWO_PI / float(tessRes)
+  let inc: float = TWO_PI / float(TESS_RES)
   var
     phase: float = TWO_PI
-    v: array[tessRes, tuple[x: float, y: float]]
+    v: array[TESS_RES, tuple[x: float, y: float]]
 
   var
-    pointer_modelView: ptr = model_view.caddr
+    pointer_modelView: ptr = modelView.caddr
     pointer_projection: ptr = projection.caddr
 
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   #glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.POLYGON))
   useStrokeColor()
-  for n in 0..tessRes-1:
+  for n in 0..TESS_RES-1:
     let
       x = cx + r*cos(phase)
       y = cy + r*sin(phase)
@@ -29,25 +29,25 @@ proc circle*(cx, cy, r: float) =
     v[n][0] = x
     v[n][1] = y
   glBegin(GL_POLYGON)
-  for n in 0..tessRes-1:
+  for n in 0..TESS_RES-1:
     glVertex2f(v[n][0], v[n][1])
   glEnd()
 
 proc arc*(cx, cy, r, sa, ea: float) =
-  let inc: float = abs(ea-sa) / float(tessRes)
+  let inc: float = abs(ea-sa) / float(TESS_RES)
   var
     phase: float = sa
-    v: array[tessRes+1, tuple[x: float, y: float]]
+    v: array[TESS_RES+1, tuple[x: float, y: float]]
 
   var
-    pointer_modelView: ptr = model_view.caddr
+    pointer_modelView: ptr = modelView.caddr
     pointer_projection: ptr = projection.caddr
 
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
   #glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.POLYGON))
   useStrokeColor()
-  for n in 0..tessRes:
+  for n in 0..TESS_RES:
     let
       x = cx + r*cos(phase)
       y = cy + r*sin(phase)
@@ -56,14 +56,14 @@ proc arc*(cx, cy, r, sa, ea: float) =
     v[n][1] = y
   glBegin(GL_TRIANGLE_FAN)
   glVertex2f(cx, cy)
-  for n in 0..tessRes:
+  for n in 0..TESS_RES:
     glVertex2f(v[n][0], v[n][1])
   glEnd()
 
 proc line*(x1, y1, x2, y2: float) =
   #TODO: Should be globally accessible: setup pointers for the transformation matrices.
   var
-    pointer_modelView: ptr = model_view.caddr
+    pointer_modelView: ptr = modelView.caddr
     pointer_projection: ptr = projection.caddr
 
   #pass transformation matrices to shader.
@@ -73,7 +73,7 @@ proc line*(x1, y1, x2, y2: float) =
   #pass parameters
   glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.LINE))
   let len = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
-  glUniform1f(s_lineLenLocation, len)
+  glUniform1f(lineLengthLocation, len)
 
   useStrokeColor()
 
@@ -100,5 +100,5 @@ proc line*(x1, y1, x2, y2: float) =
 
   let a = arctan2(norm1.y, norm1.x)
   glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
-  arc(x1, y1, lw, a, a+PI)
-  arc(x2, y2, lw, a+PI, a)
+  arc(x1, y1, lineWidth, a, a+PI)
+  arc(x2, y2, lineWidth, a+PI, a)

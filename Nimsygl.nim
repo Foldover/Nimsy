@@ -57,67 +57,15 @@ proc shader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
   glUseProgram(s.ID)
 
 #[
-  Variables directly available outside of the module
-]#
-const
-  tessRes*: int = 32
-  TWO_PI*: float = PI*2.0
-  HALF_PI*: float = PI/2.0
-  QUARTER_PI*: float = PI/4.0
-
-#[
-  Variables that aren't directly available outside of the module,
-  but have getter procedures.
-]#
-var
-  #General opengl vars
-  mWidth: float
-  mHeight: float
-
-  #Inputs
-  mMouseX: int
-  mMouseY: int
-
-#[
   These variables are not to be messed with outside this module.
   Horrible things can happen!
 ]#
 
 var
-  #General opengl vars
-  mainWindowID: int
-
-  #Main loop related
-  msInFrame: float = 1000.0 / 60.0
-  bLOOP: bool
-
-  #Rendering variables.
-  FILL: bool = true
-  STROKE: bool = true
-  color_stroke: array[4, float] = [0.0, 0.0, 0.0, 1.0]
-  color_fill: array[4, float] = [1.0, 1.0, 1.0, 1.0]
-
-  #Shader matrices.
-  model_view* = mat4f(1.0)
-  projection*: Mat4x4[float32]
-  p_model_view: Mat4x4[float32]
-  p_projection: Mat4x4[float32]
-  mat_pushed = false
-
-  #Shader locations.
-  modelViewLocation*: GLint
-  projectionLocation*: GLint
-  fragmentStrokeColorLocation: GLint
-  fragmentFillColorLocation: GLint
-  vertexWidthLocation*: GLint
-  vertexNormalLocation*: GLint
-  vertexPositionLocation*: GLint
-  drawingModeLocation*: GLint
-  s_lineLenLocation*: GLint
-
   #Procedure references. These are used to run the users program.
   setupProcedure: proc()
   drawProcedure: proc() {.cdecl.}
+  mouseDragProcedure: proc(x, y: int)
   mouseKeyProcedure: proc(button: int, state: int, x: int, y: int)
   keyboardKeyProcedure: proc(key: char, x, y: int)
 
@@ -155,7 +103,7 @@ proc mainLoop() =
   while (glutGetWindow() != 0):
     let t1 = epochTime() / 1000.0
     glutMainLoopEvent()
-    if(bLOOP):
+    if(isLoop):
       drawProcedure()
       glutSwapBuffers()
     let t2 = epochTime() / 1000.0
@@ -165,12 +113,15 @@ proc mainLoop() =
     sleep(int(msDiff))
 
 proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
+  echo "mouse moving"
   mMouseX = mx
   mMouseY = my
 
 proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
   mMouseX = mx
   mMouseY = my
+  if mouseDragProcedure != nil:
+    mouseDragProcedure(int(mx), int(my))
 
 proc mouseKeyProc(button, state, x, y: cint) {.cdecl.} =
   if mouseKeyProcedure != nil:
@@ -193,10 +144,10 @@ proc start*(name: cstring = "Nimsy App") =
 
   #Setup opengl callbacks
   if drawProcedure != nil:
-    bLOOP = true
+    isLoop = true
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
   else:
-    bLOOP = false
+    isLoop = false
 
   glutMotionFunc(TGlut2IntCallback(mouseMotionProc))
   glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
@@ -239,7 +190,7 @@ proc start*(name: cstring = "Nimsy App") =
   vertexMiterLocation = glGetAttribLocation(activeShader.ID, "a_miter")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
-  s_lineLenLocation = glGetUniformLocation(activeShader.ID, "u_linelen")
+  lineLengthLocation = glGetUniformLocation(activeShader.ID, "u_linelen")
   #TODO: prevent user from calling size() more than once
 
   mainLoop()
@@ -266,13 +217,16 @@ proc setMouseKeyEvent*(procedure: proc(button: int, state: int, x: int, y: int))
 proc setKeyboardEvent*(procedure: proc(key: char, x, y: int)) =
   keyboardKeyProcedure = procedure
 
+proc setMouseDragged*(procedure: proc(x, y: int)) =
+  mouseDragProcedure = procedure
+
 proc loop*() =
   if drawProcedure != nil:
-    bLOOP = true
+    isLoop = true
     glutIdleFunc(TGlutVoidCallback(drawProcedure))
 
 proc noLoop*() =
-  bLOOP = false
+  isLoop = false
 
 proc background*(r, g, b, a: float) =
   glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
@@ -281,47 +235,47 @@ proc background*(r, g, b, a: float) =
 proc strokeWeight*(width: float) =
   vertexWidthLocation = glGetUniformLocation(activeShader.ID, "u_linewidth")
   glUniform1f(vertexWidthLocation, width)
-  lw = width
+  lineWidth = width
 
 proc noStroke*() =
-  STROKE = false
+  isStroke = false
 
 proc stroke*(r, g, b, a: float) =
-  STROKE = true
-  color_stroke[0] = r
-  color_stroke[1] = g
-  color_stroke[2] = b
-  color_stroke[3] = a
+  isStroke = true
+  colorStroke[0] = r
+  colorStroke[1] = g
+  colorStroke[2] = b
+  colorStroke[3] = a
 
 proc useStrokeColor*() =
   fragmentStrokeColorLocation = glGetUniformLocation(activeShader.ID, "stroke_color")
-  glUniform4f(fragmentStrokeColorLocation, color_stroke[0], color_stroke[1], color_stroke[2], color_stroke[3])
-
-proc noFill*() =
-  FILL = false
-
-proc fill*(r, g, b, a: float) =
-  FILL = true
-  color_fill[0] = r
-  color_fill[1] = g
-  color_fill[2] = b
-  color_fill[3] = a
+  glUniform4f(fragmentStrokeColorLocation, colorStroke[0], colorStroke[1], colorStroke[2], colorStroke[3])
 
 proc useFillColor*() =
   fragmentFillColorLocation = glGetUniformLocation(activeShader.ID, "fill_color")
-  glUniform4f(fragmentFillColorLocation, color_fill[0], color_fill[1], color_fill[2], color_fill[3])
+  glUniform4f(fragmentFillColorLocation, colorFill[0], colorFill[1], colorFill[2], colorFill[3])
+
+proc noFill*() =
+  isFill = false
+
+proc fill*(r, g, b, a: float) =
+  isFill = true
+  colorFill[0] = r
+  colorFill[1] = g
+  colorFill[2] = b
+  colorFill[3] = a
 
 proc pushMatrix*() =
-  if not mat_pushed:
-    p_model_view = model_view
-    p_projection = projection
-    mat_pushed = true
+  if not isMatPushed:
+    pushedModelView = model_view
+    pushedProjection = projection
+    isMatPushed = true
 
 proc popMatrix*() =
-  if mat_pushed:
-    model_view = p_model_view
-    projection = p_projection
-    mat_pushed = false
+  if isMatPushed:
+    modelView = pushedModelView
+    projection = pushedProjection
+    isMatPushed = false
 
 # proc translate*(x, y: int) =
 #   model_view = translate(model_view, vec3(float(x), float(y), 0.0))
