@@ -20,12 +20,49 @@ proc beginShape*(s: PShape) =
   s.vlen = 0
 
 proc vertex*(s: PShape, x, y, z: float) =
-  s.vertices.insert(PVector(x: x, y: y, z: z), s.vlen)
+  s.vertices.add(PVector(x: x, y: y, z: z))
   s.vlen += 1
 
 proc endShape*(s: PShape) =
-  if(true):
-    discard
+  s.miters = newSeq[PVector]()
+  s.normals = newSeq[PVector]()
+  for n in 0..s.vertices.high-1:
+    if n == 0:
+      let tan = tangent3(s.vertices[s.vertices.high-1], s.vertices[n], s.vertices[n+1])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+    elif n == s.vertices.high-1:
+      let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[0])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+    else:
+      let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+
+proc getVertex*(s: PShape, index: int): PVector =
+  return s.vertices[index]
+
+proc setVertex*(s: PShape, vertex: PVector, index: int) =
+  s.vertices[index].x = vertex.x
+  s.vertices[index].y = vertex.y
+  s.vertices[index].z = vertex.z
+
+  s.miters = newSeq[PVector]()
+  s.normals = newSeq[PVector]()
+  for n in 0..s.vertices.high-1:
+    if n == 0:
+      let tan = tangent3(s.vertices[s.vertices.high-1], s.vertices[n], s.vertices[n+1])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+    elif n == s.vertices.high-1:
+      let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[0])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+    else:
+      let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
+      s.miters.add(normal(tan))
+      s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
 
 proc getVertexCount*(s: PShape) : int =
   return s.vlen
@@ -64,36 +101,20 @@ proc shape*(s: PShape) =
     glDisable(GL_STENCIL_TEST);
 
   if isStroke:
-    var miters = newSeq[PVector]()
-    var normals = newSeq[PVector]()
-    for n in 0..s.vertices.high-1:
-      if n == 0:
-        let tan = tangent3(s.vertices[s.vertices.high-1], s.vertices[n], s.vertices[n+1])
-        miters.add(normal(tan))
-        normals.add(normal(s.vertices[n], s.vertices[n+1]))
-      elif n == s.vertices.high-1:
-        let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[0])
-        miters.add(normal(tan))
-        normals.add(normal(s.vertices[n], s.vertices[n+1]))
-      else:
-        let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
-        miters.add(normal(tan))
-        normals.add(normal(s.vertices[n], s.vertices[n+1]))
-
     useStrokeColor()
     glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.PATH))
-    glBegin(GL_QUAD_STRIP)
+    glBegin(GL_TRIANGLE_STRIP)
     for n in 0..s.vertices.high-1:
-      glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-miters[n].x), GLfloat(-miters[n].y))
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[n].x), GLfloat(-normals[n].y))
+      glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-s.miters[n].x), GLfloat(-s.miters[n].y))
+      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-s.normals[n].x), GLfloat(-s.normals[n].y))
       glVertex2f(s.vertices[n].x, s.vertices[n].y)
-      glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(miters[n].x), GLfloat(miters[n].y))
-      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[n].x), GLfloat(normals[n].y))
+      glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(s.miters[n].x), GLfloat(s.miters[n].y))
+      glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(s.normals[n].x), GLfloat(s.normals[n].y))
       glVertex2f(s.vertices[n].x, s.vertices[n].y)
-    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-miters[0].x), GLfloat(-miters[0].y))
-    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-normals[0].x), GLfloat(-normals[0].y))
+    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(-s.miters[0].x), GLfloat(-s.miters[0].y))
+    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(-s.normals[0].x), GLfloat(-s.normals[0].y))
     glVertex2f(s.vertices[0].x, s.vertices[0].y)
-    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(miters[0].x), GLfloat(miters[0].y))
-    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(normals[0].x), GLfloat(normals[0].y))
+    glVertexAttrib2f(GLuint(vertexMiterLocation), GLfloat(s.miters[0].x), GLfloat(s.miters[0].y))
+    glVertexAttrib2f(GLuint(vertexNormalLocation), GLfloat(s.normals[0].x), GLfloat(s.normals[0].y))
     glVertex2f(s.vertices[0].x, s.vertices[0].y)
     glEnd()

@@ -29,11 +29,13 @@ export Nimsygl.noStroke
 export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
+export Nimsygl.frameRate
 
 #export Nimsyprimitives symbols
 export Nimsyprimitives.circle
 export Nimsyprimitives.arc
 export Nimsyprimitives.line
+export Nimsyprimitives.rect
 
 #export PVector symbols
 export NimsyPVector.newPVector
@@ -61,5 +63,7 @@ export NimsyPShape.newPShape
 export NimsyPShape.vertex
 export NimsyPShape.beginShape
 export NimsyPShape.endShape
+export NimsyPShape.getVertex
+export NimsyPShape.setVertex
 export NimsyPShape.shape
 export NimsyPShape.getVertexCount

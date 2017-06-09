@@ -9,6 +9,7 @@ uniform mat4 u_p_matrix;
 
 attribute float e_i_drawing_mode;
 varying float e_o_drawing_mode;
+varying vec2 e_o_normal;
 
 void main() {
 
@@ -18,6 +19,7 @@ void main() {
     vec4 pos = u_mv_matrix * vec4(a_pos, 0, 1);
     gl_Position = u_p_matrix * (pos + delta);
     e_o_drawing_mode = e_i_drawing_mode;
+    e_o_normal = abs(a_normal);
   }
   else if(e_i_drawing_mode == 1.0)
   {

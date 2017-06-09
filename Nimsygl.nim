@@ -104,6 +104,7 @@ proc mainLoop() =
     let t1 = epochTime() / 1000.0
     glutMainLoopEvent()
     if(isLoop):
+      glClear(GL_STENCIL_BUFFER_BIT)
       drawProcedure()
       glutSwapBuffers()
     let t2 = epochTime() / 1000.0
@@ -113,7 +114,6 @@ proc mainLoop() =
     sleep(int(msDiff))
 
 proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
-  echo "mouse moving"
   mMouseX = mx
   mMouseY = my
 
@@ -138,7 +138,14 @@ proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
 proc start*(name: cstring = "Nimsy App") =
   glutInit()
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH)
-  glutInitWindowSize(int(300), int(300))
+  #Nimsy aims to recreate Processing in the nim language. The setup() Processing
+  #function is integral to the language's workings, and, as such, it's high
+  #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
+  if setupProcedure != nil:
+    setupProcedure()
+  else:
+    echo "You must define and supply a setup procedure"
+  glutInitWindowSize(int(mWidth), int(mHeight))
   glutInitWindowPosition(50, 50)
   mainWindowID = glutCreateWindow(name)
 
@@ -153,17 +160,9 @@ proc start*(name: cstring = "Nimsy App") =
   glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
   glutMouseFunc(TGlut4IntCallback(mouseKeyProc))
   glutKeyboardFunc(TGlut1Char2IntCallback(keyboardKeyProc))
-
-  #Nimsy aims to recreate Processing in the nim language. The setup() Processing
-  #function is integral to the language's workings, and, as such, it's high
-  #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
-  if setupProcedure != nil:
-    setupProcedure()
-  else:
-    echo "You must define and supply a setup procedure"
+  loadExtensions()
 
   glutReshapeFunc(reshape)
-  loadExtensions()
 
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
@@ -205,6 +204,13 @@ proc size*(width, height: float) =
   mWidth = width
   mHeight = height
 
+proc frameRate*(): float =
+  return FPS
+
+proc frameRate*(fps: float) =
+  FPS = fps
+  msInFrame = 1000.0 / FPS
+
 proc setSetup*(procedure: proc()) =
   setupProcedure = procedure
 
@@ -229,7 +235,7 @@ proc noLoop*() =
   isLoop = false
 
 proc background*(r, g, b, a: float) =
-  glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
   glClearColor(r, g, b, a)
 
 proc strokeWeight*(width: float) =

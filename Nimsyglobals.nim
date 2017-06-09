@@ -30,7 +30,8 @@ var
   mainWindowID*: int
 
   #Main loop related
-  msInFrame*: float = 1000.0 / 30.0
+  FPS*: float = 30.0
+  msInFrame*: float = 1000.0 / FPS
   isLoop*: bool
 
   #Rendering variables.

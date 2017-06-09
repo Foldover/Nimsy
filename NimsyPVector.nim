@@ -15,7 +15,7 @@ import math
 from Nimsytypes import PVector
 
 proc newPVector*(x, y, z: float): PVector =
-  return PVector(x: 0, y: 0, z: 0)
+  return PVector(x: x, y: y, z: z)
 
 proc newPVector*(value: float): PVector =
   return PVector(x: value, y: value, z: value)

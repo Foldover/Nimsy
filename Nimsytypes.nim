@@ -24,7 +24,8 @@ type
 type
   PShape* = ref object of RootObj
     vertices*: seq[PVector]
-    pathVertices*: seq[PVector]
+    miters*: seq[PVector]
+    normals*: seq[PVector]
     vlen*: int
 
 type
@@ -33,4 +34,4 @@ type
 
 type
   DrawingModes* {.pure.} = enum
-    LINE, PATH, POLYGON
+    LINE, PATH, POLYGON, CAP

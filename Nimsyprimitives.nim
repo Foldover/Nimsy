@@ -1,6 +1,8 @@
 import Nimsytypes
 import Nimsyglobals
 import Nimsygl
+import Nimsylinepath
+import NimsyPVector
 import math
 import glm
 import glut
@@ -19,7 +21,7 @@ proc circle*(cx, cy, r: float) =
 
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
-  #glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.POLYGON))
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
   useStrokeColor()
   for n in 0..TESS_RES-1:
     let
@@ -37,7 +39,7 @@ proc arc*(cx, cy, r, sa, ea: float) =
   let inc: float = abs(ea-sa) / float(TESS_RES)
   var
     phase: float = sa
-    v: array[TESS_RES+1, tuple[x: float, y: float]]
+    v: array[TESS_RES+1, PVector]
 
   var
     pointer_modelView: ptr = modelView.caddr
@@ -45,20 +47,71 @@ proc arc*(cx, cy, r, sa, ea: float) =
 
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
-  #glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.POLYGON))
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+  useFillColor()
+  for n in 0..TESS_RES:
+    let
+      x = cx + r*cos(phase)
+      y = cy + r*sin(phase)
+    phase += inc
+    v[n] = newPVector(x, y, 0)
+  glBegin(GL_TRIANGLE_FAN)
+  glVertex2f(cx, cy)
+  for n in 0..TESS_RES:
+    glVertex2f(v[n].x, v[n].y)
+  glEnd()
+
+proc roundButtArc*(cx, cy, r, sa, ea: float) =
+  let inc: float = abs(ea-sa) / float(TESS_RES)
+  var
+    phase: float = sa
+    v: array[TESS_RES+1, PVector]
+
+  var
+    pointer_modelView: ptr = modelView.caddr
+    pointer_projection: ptr = projection.caddr
+
+  glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
+  glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.CAP))
   useStrokeColor()
   for n in 0..TESS_RES:
     let
       x = cx + r*cos(phase)
       y = cy + r*sin(phase)
     phase += inc
-    v[n][0] = x
-    v[n][1] = y
+    v[n] = newPVector(x, y, 0)
   glBegin(GL_TRIANGLE_FAN)
   glVertex2f(cx, cy)
   for n in 0..TESS_RES:
-    glVertex2f(v[n][0], v[n][1])
+    glVertex2f(v[n].x, v[n].y)
   glEnd()
+
+proc rect*(x, y, w, h: float) =
+  var
+    pointer_modelView: ptr = modelView.caddr
+    pointer_projection: ptr = projection.caddr
+
+  #pass transformation matrices to shader.
+  glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
+  glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+
+  if isFill:
+    glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+    useFillColor()
+    glBegin(GL_TRIANGLE_STRIP)
+    glVertex2f(x + w, y)
+    glVertex2f(x, y)
+    glVertex2f(x + w, y + h)
+    glVertex2f(x, y + h)
+    # glVertex2f(x + w, y + h)
+    # glVertex2f(x + w, y)
+    # glVertex2f(x, y)
+    glEnd()
+
+  if isStroke:
+    linePathDraw(@[newPVector(x, y, 0), newPVector(x + w, y, 0), newPVector(x + w, y + h, 0), newPVector(x, y + h, 0), newPVector(x, y, 0)])
+
 
 proc line*(x1, y1, x2, y2: float) =
   #TODO: Should be globally accessible: setup pointers for the transformation matrices.
@@ -71,7 +124,7 @@ proc line*(x1, y1, x2, y2: float) =
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
 
   #pass parameters
-  glVertexAttribI1i(GLuint(drawingModeLocation), GLint(DrawingModes.LINE))
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.LINE))
   let len = sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
   glUniform1f(lineLengthLocation, len)
 
@@ -100,5 +153,5 @@ proc line*(x1, y1, x2, y2: float) =
 
   let a = arctan2(norm1.y, norm1.x)
   glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
-  arc(x1, y1, lineWidth, a, a+PI)
-  arc(x2, y2, lineWidth, a+PI, a)
+  roundButtArc(x1, y1, lineWidth, a, a+PI)
+  roundButtArc(x2, y2, lineWidth, a+PI, a)
