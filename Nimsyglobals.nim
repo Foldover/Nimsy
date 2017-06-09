@@ -7,7 +7,7 @@ import math
 
 #[ Constants ]#
 const
-  TESS_RES*: int = 32
+  TESS_RES*: int = 64
   TWO_PI*: float = PI*2.0
   HALF_PI*: float = PI/2.0
   QUARTER_PI*: float = PI/4.0

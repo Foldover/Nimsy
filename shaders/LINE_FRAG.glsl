@@ -7,7 +7,6 @@ void main()
 {
   if(e_o_drawing_mode == 0.0 || e_o_drawing_mode == 1.0)
   {
-    
     gl_FragColor = stroke_color;
   }
   else if(e_o_drawing_mode == 2.0)

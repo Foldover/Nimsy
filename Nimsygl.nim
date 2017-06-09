@@ -137,7 +137,7 @@ proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
 #FIXME: Sometimes the program fails to compile. Investigate this
 proc start*(name: cstring = "Nimsy App") =
   glutInit()
-  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH)
+  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
   #Nimsy aims to recreate Processing in the nim language. The setup() Processing
   #function is integral to the language's workings, and, as such, it's high
   #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
@@ -169,6 +169,7 @@ proc start*(name: cstring = "Nimsy App") =
   glEnable(GL_DEPTH_TEST)
   #glEnable(GL_STENCIL_TEST)
   glEnable(GL_BLEND)
+  glEnable(GL_MULTISAMPLE)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
   glShadeModel(GL_SMOOTH)
@@ -237,6 +238,10 @@ proc noLoop*() =
 proc background*(r, g, b, a: float) =
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
   glClearColor(r, g, b, a)
+
+proc background*(g: float) =
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+  glClearColor(g, g, g, 1.0)
 
 proc strokeWeight*(width: float) =
   vertexWidthLocation = glGetUniformLocation(activeShader.ID, "u_linewidth")

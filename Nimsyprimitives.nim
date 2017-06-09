@@ -13,7 +13,7 @@ proc circle*(cx, cy, r: float) =
   let inc: float = TWO_PI / float(TESS_RES)
   var
     phase: float = TWO_PI
-    v: array[TESS_RES, tuple[x: float, y: float]]
+    v: array[TESS_RES + 1, PVector]
 
   var
     pointer_modelView: ptr = modelView.caddr
@@ -21,19 +21,24 @@ proc circle*(cx, cy, r: float) =
 
   glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
   glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
-  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
-  useStrokeColor()
-  for n in 0..TESS_RES-1:
+
+  for n in 0..TESS_RES:
     let
       x = cx + r*cos(phase)
       y = cy + r*sin(phase)
     phase -= inc
-    v[n][0] = x
-    v[n][1] = y
-  glBegin(GL_POLYGON)
-  for n in 0..TESS_RES-1:
-    glVertex2f(v[n][0], v[n][1])
-  glEnd()
+    v[n] = newPVector(x, y, 0)
+
+  if isFill:
+    glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+    useFillColor()
+    glBegin(GL_POLYGON)
+    for n in 0..TESS_RES-1:
+      glVertex2f(v[n].x, v[n].y)
+    glEnd()
+
+  if isStroke:
+    linePathDraw(@v)
 
 proc arc*(cx, cy, r, sa, ea: float) =
   let inc: float = abs(ea-sa) / float(TESS_RES)
