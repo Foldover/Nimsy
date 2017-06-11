@@ -9,6 +9,19 @@ import glut
 import opengl
 import glu
 
+proc point*(x, y, z: float) =
+  var
+    pointer_modelView: ptr = modelView.caddr
+    pointer_projection: ptr = projection.caddr
+
+  glUniformMatrix4fv(modelViewLocation, GLsizei(1), GLboolean(false), pointer_modelView)
+  glUniformMatrix4fv(projectionLocation, GLsizei(1), GLboolean(false), pointer_projection)
+  glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(-1))
+  useStrokeColor()
+  glBegin(GL_POINTS)
+  glVertex3f(x, y, z)
+  glEnd()
+
 proc circle*(cx, cy, r: float) =
   let inc: float = TWO_PI / float(TESS_RES)
   var

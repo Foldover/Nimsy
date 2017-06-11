@@ -40,6 +40,7 @@ export Nimsyprimitives.circle
 export Nimsyprimitives.arc
 export Nimsyprimitives.line
 export Nimsyprimitives.rect
+export Nimsyprimitives.point
 
 #export PVector symbols
 export NimsyPVector.newPVector

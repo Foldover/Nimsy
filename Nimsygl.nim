@@ -135,12 +135,12 @@ proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
 ]#
 
 #FIXME: Sometimes the program fails to compile. Investigate this
+#TODO: initialization REALLY needs to be prettier. How the hell do you resize a gl window?
 proc start*(name: cstring = "Nimsy App") =
   glutInit()
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
-  #Nimsy aims to recreate Processing in the nim language. The setup() Processing
-  #function is integral to the language's workings, and, as such, it's high
-  #status is mirrored in Nimsy. A setup procedure MUST thus be provided.
+
+  #A setup procedure MUST be provided.
   if setupProcedure != nil:
     setupProcedure()
   else:
