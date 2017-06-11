@@ -30,6 +30,10 @@ export Nimsygl.stroke
 export Nimsygl.noFill
 export Nimsygl.fill
 export Nimsygl.frameRate
+export Nimsygl.translate
+export Nimsygl.rotate
+export Nimsygl.pushMatrix
+export Nimsygl.popMatrix
 
 #export Nimsyprimitives symbols
 export Nimsyprimitives.circle

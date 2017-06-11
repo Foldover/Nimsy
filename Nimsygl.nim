@@ -65,8 +65,8 @@ var
   #Procedure references. These are used to run the users program.
   setupProcedure: proc()
   drawProcedure: proc() {.cdecl.}
-  mouseDragProcedure: proc(x, y: int)
-  mouseKeyProcedure: proc(button: int, state: int, x: int, y: int)
+  mouseDragProcedure: proc(x, y: float)
+  mouseKeyProcedure: proc(button: int, state: int, x: float, y: float)
   keyboardKeyProcedure: proc(key: char, x, y: int)
 
 #[
@@ -79,10 +79,10 @@ proc width*(): float {.inline.} =
 proc height*(): float {.inline.} =
   return mHeight
 
-proc mouseX*(): int {.inline.} =
+proc mouseX*(): float {.inline.} =
   return mMouseX
 
-proc mouseY*(): int {.inline.} =
+proc mouseY*(): float {.inline.} =
   return mMouseY
 
 #[
@@ -114,18 +114,18 @@ proc mainLoop() =
     sleep(int(msDiff))
 
 proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
-  mMouseX = mx
-  mMouseY = my
+  mMouseX = float(mx)
+  mMouseY = float(my)
 
 proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
-  mMouseX = mx
-  mMouseY = my
+  mMouseX = float(mx)
+  mMouseY = float(my)
   if mouseDragProcedure != nil:
-    mouseDragProcedure(int(mx), int(my))
+    mouseDragProcedure(float(mx), float(my))
 
 proc mouseKeyProc(button, state, x, y: cint) {.cdecl.} =
   if mouseKeyProcedure != nil:
-    mouseKeyProcedure(int(button), int(state), int(x), int(y))
+    mouseKeyProcedure(int(button), int(state), float(x), float(y))
 
 proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
   if keyboardKeyProcedure != nil:
@@ -167,7 +167,6 @@ proc start*(name: cstring = "Nimsy App") =
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
   glEnable(GL_DEPTH_TEST)
-  #glEnable(GL_STENCIL_TEST)
   glEnable(GL_BLEND)
   glEnable(GL_MULTISAMPLE)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -178,6 +177,7 @@ proc start*(name: cstring = "Nimsy App") =
   activeShader = Shader(ID: 0)
 
   #TODO: load default shaders from separate module
+  modelView = mat4f(1.0)
   shader(activeShader, "shaders/LINE_VERTEX.glsl", "shaders/LINE_FRAG.glsl")
   modelViewLocation = glGetUniformLocation(activeShader.ID, "u_mv_matrix")
   projectionLocation = glGetUniformLocation(activeShader.ID, "u_p_matrix")
@@ -218,13 +218,13 @@ proc setSetup*(procedure: proc()) =
 proc setDraw*(procedure: proc() {.cdecl.}) =
   drawProcedure = procedure
 
-proc setMouseKeyEvent*(procedure: proc(button: int, state: int, x: int, y: int)) =
+proc setMouseKeyEvent*(procedure: proc(button: int, state: int, x: float, y: float)) =
   mouseKeyProcedure = procedure
 
 proc setKeyboardEvent*(procedure: proc(key: char, x, y: int)) =
   keyboardKeyProcedure = procedure
 
-proc setMouseDragged*(procedure: proc(x, y: int)) =
+proc setMouseDragged*(procedure: proc(x, y: float)) =
   mouseDragProcedure = procedure
 
 proc loop*() =
@@ -288,10 +288,10 @@ proc popMatrix*() =
     projection = pushedProjection
     isMatPushed = false
 
-# proc translate*(x, y: int) =
-#   model_view = translate(model_view, vec3(float(x), float(y), 0.0))
-#   projection = translate(projection, vec3(float(x), float(y), 0.0))
-#
-# proc rotate*(angle: float) =
-#   model_view = rotate(model_view, vec3(0, 0, 1), angle)
-#   projection = rotate(projection, vec3(0, 0, 1), angle)
+proc translate*(x, y: float) =
+  #model_view = translate(model_view, vec3f(float(x), float(y), 0.0))
+  projection = translate(projection, vec3f(float(x), float(y), 0.0))
+
+proc rotate*(angle: float) =
+  #model_view = rotate(model_view, vec3f(0, 0, 1), angle)
+  projection = rotate(projection, vec3f(0, 0, 1), angle)

@@ -13,7 +13,9 @@ from NimsyPVector import normal, tangent3
 import Nimsyglobals
 
 proc newPShape*(): PShape =
-  return PShape(vertices: newSeq[PVector](), vlen: 0)
+  return PShape(vertices: newSeq[PVector](),
+                vlen: 0,
+                children: newSeq[PShape]())
 
 proc beginShape*(s: PShape) =
   s.vertices = @[]

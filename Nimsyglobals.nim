@@ -19,8 +19,8 @@ var
   mHeight*: float
 
   #Inputs
-  mMouseX*: int
-  mMouseY*: int
+  mMouseX*: float
+  mMouseY*: float
 
   #Drawing
   jointType*: EJoint = EJoint.MITER
@@ -41,7 +41,7 @@ var
   colorFill*: array[4, float] = [1.0, 1.0, 1.0, 1.0]
 
   #Shader matrices.
-  modelView* = mat4f(1.0)
+  modelView*: Mat4x4[float32]
   projection*: Mat4x4[float32]
   pushedModelView*: Mat4x4[float32]
   pushedProjection*: Mat4x4[float32]

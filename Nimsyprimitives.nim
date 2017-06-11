@@ -60,11 +60,16 @@ proc arc*(cx, cy, r, sa, ea: float) =
       y = cy + r*sin(phase)
     phase += inc
     v[n] = newPVector(x, y, 0)
-  glBegin(GL_TRIANGLE_FAN)
-  glVertex2f(cx, cy)
-  for n in 0..TESS_RES:
-    glVertex2f(v[n].x, v[n].y)
-  glEnd()
+  if isFill:
+    glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
+    useFillColor()
+    glBegin(GL_POLYGON)
+    for n in 0..TESS_RES-1:
+      glVertex2f(v[n].x, v[n].y)
+    glEnd()
+
+  if isStroke:
+    linePathDraw(@v)
 
 proc roundButtArc*(cx, cy, r, sa, ea: float) =
   let inc: float = abs(ea-sa) / float(TESS_RES)

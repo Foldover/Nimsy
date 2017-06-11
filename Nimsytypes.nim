@@ -27,6 +27,7 @@ type
     miters*: seq[PVector]
     normals*: seq[PVector]
     vlen*: int
+    children*: seq[PShape]
 
 type
   Shader* = ref object of RootObj
