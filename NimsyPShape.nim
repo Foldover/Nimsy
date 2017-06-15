@@ -14,6 +14,7 @@ import Nimsyglobals
 
 proc newPShape*(): PShape =
   return PShape(vertices: newSeq[PVector](),
+                VBO: 0,
                 vlen: 0,
                 children: newSeq[PShape]())
 
@@ -41,6 +42,9 @@ proc endShape*(s: PShape) =
       let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
       s.miters.add(normal(tan))
       s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
+  glGenBuffers(1, s.VBO.addr)
+  glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
+  glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
 
 proc getVertex*(s: PShape, index: int): PVector =
   return s.vertices[index]

@@ -5,23 +5,26 @@ import math
 import Nimsytypes
 
 var
-  x, y = 10
+  shp: PShape
 
 proc setup() =
-  size(640, 640)
   frameRate(60)
+  shp = newPShape()
+  shp.beginShape()
+  shp.vertex(10, 10, 0)
+  shp.vertex(110, 10, 0)
+  shp.vertex(110, 50, 0)
+  shp.vertex(10, 150, 0)
+  shp.vertex(10, 10, 0)
+  shp.endShape()
 
 proc draw() {.cdecl.} =
   #background(0.0, 0.0, 0.0, 1.0)
   strokeWeight(2.0)
   stroke(1.0, 0.0, 0.2, 1.0)
   fill(1.0, 1.0, 1.0, 0.05)
-  rect(0, 0, width(), height())
-  pushMatrix()
-  translate(mouseX(), mouseY())
-  point(0, 0, 0)
-  popMatrix()
+  shp.shape()
 
 setSetup(setup)
 setDraw(draw)
-start()
+start(640, 640)

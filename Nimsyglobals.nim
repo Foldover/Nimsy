@@ -15,12 +15,12 @@ const
 #[ Opengl specific ]#
 var
   #General opengl vars
-  mWidth*: float
-  mHeight*: float
+  mWidth*: int
+  mHeight*: int
 
   #Inputs
-  mMouseX*: float
-  mMouseY*: float
+  mMouseX*: int
+  mMouseY*: int
 
   #Drawing
   jointType*: EJoint = EJoint.MITER

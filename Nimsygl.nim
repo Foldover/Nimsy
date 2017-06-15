@@ -74,16 +74,16 @@ var
 ]#
 
 proc width*(): float {.inline.} =
-  return mWidth
+  return float(mWidth)
 
 proc height*(): float {.inline.} =
-  return mHeight
+  return float(mHeight)
 
 proc mouseX*(): float {.inline.} =
-  return mMouseX
+  return float(mMouseX)
 
 proc mouseY*(): float {.inline.} =
-  return mMouseY
+  return float(mMouseY)
 
 #[
   Internal procedures.
@@ -114,12 +114,12 @@ proc mainLoop() =
     sleep(int(msDiff))
 
 proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
-  mMouseX = float(mx)
-  mMouseY = float(my)
+  mMouseX = mx
+  mMouseY = my
 
 proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
-  mMouseX = float(mx)
-  mMouseY = float(my)
+  mMouseX = mx
+  mMouseY = my
   if mouseDragProcedure != nil:
     mouseDragProcedure(float(mx), float(my))
 
@@ -134,20 +134,20 @@ proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
   Procedures available to Nimsy users
 ]#
 
-#FIXME: Sometimes the program fails to compile. Investigate this
+#FIXME: Sometimes the program fails to run. See "echo w"
 #TODO: initialization REALLY needs to be prettier. How the hell do you resize a gl window?
-proc start*(name: cstring = "Nimsy App") =
+proc start*(w, h: int, name: cstring = "Nimsy App") =
+  mWidth = w
+  mHeight = h  
+  #FIXME: without "echo w" the program can't start. Go figure.
+  echo w
+
   glutInit()
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
-
-  #A setup procedure MUST be provided.
-  if setupProcedure != nil:
-    setupProcedure()
-  else:
-    echo "You must define and supply a setup procedure"
-  glutInitWindowSize(int(mWidth), int(mHeight))
+  glutInitWindowSize(mWidth, mHeight)
   glutInitWindowPosition(50, 50)
   mainWindowID = glutCreateWindow(name)
+  loadExtensions()
 
   #Setup opengl callbacks
   if drawProcedure != nil:
@@ -160,9 +160,11 @@ proc start*(name: cstring = "Nimsy App") =
   glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
   glutMouseFunc(TGlut4IntCallback(mouseKeyProc))
   glutKeyboardFunc(TGlut1Char2IntCallback(keyboardKeyProc))
-  loadExtensions()
 
   glutReshapeFunc(reshape)
+
+  if setupProcedure != nil:
+    setupProcedure()
 
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
@@ -201,7 +203,7 @@ proc setDrawingMode*(dm: DrawingModes) =
 #[
   Procedures available to users.
 ]#
-proc size*(width, height: float) =
+proc size*(width, height: int) =
   mWidth = width
   mHeight = height
 
@@ -243,6 +245,10 @@ proc background*(g: float) =
   glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
   glClearColor(g, g, g, 1.0)
 
+proc background*(col: Color) =
+  glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+  glClearColor(col.r, col.g, col.b, col.a)
+
 proc strokeWeight*(width: float) =
   vertexWidthLocation = glGetUniformLocation(activeShader.ID, "u_linewidth")
   glUniform1f(vertexWidthLocation, width)
@@ -257,6 +263,20 @@ proc stroke*(r, g, b, a: float) =
   colorStroke[1] = g
   colorStroke[2] = b
   colorStroke[3] = a
+
+proc stroke*(g: float) =
+  isStroke = true
+  colorStroke[0] = g
+  colorStroke[1] = g
+  colorStroke[2] = g
+  colorStroke[3] = 1.0
+
+proc stroke*(col: Color) =
+  isStroke = true
+  colorStroke[0] = col.r
+  colorStroke[1] = col.g
+  colorStroke[2] = col.b
+  colorStroke[3] = col.a
 
 proc useStrokeColor*() =
   fragmentStrokeColorLocation = glGetUniformLocation(activeShader.ID, "stroke_color")
@@ -275,6 +295,20 @@ proc fill*(r, g, b, a: float) =
   colorFill[1] = g
   colorFill[2] = b
   colorFill[3] = a
+
+proc fill*(g: float) =
+  isFill = true
+  colorFill[0] = g
+  colorFill[1] = g
+  colorFill[2] = g
+  colorFill[3] = 1.0
+
+proc fill*(col: Color) =
+  isFill = true
+  colorFill[0] = col.r
+  colorFill[1] = col.g
+  colorFill[2] = col.b
+  colorFill[3] = col.a
 
 proc pushMatrix*() =
   if not isMatPushed:
