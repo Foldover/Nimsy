@@ -43,8 +43,6 @@ proc endShape*(s: PShape) =
       s.miters.add(normal(tan))
       s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
   glGenBuffers(1, s.VBO.addr)
-  glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
-  glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
 
 proc getVertex*(s: PShape, index: int): PVector =
   return s.vertices[index]
@@ -91,10 +89,18 @@ proc shape*(s: PShape) =
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS,0x1,0x1);
     glStencilOp(GL_KEEP,GL_INVERT,GL_INVERT);
-    glBegin(GL_TRIANGLE_FAN)
-    for v in s.vertices:
-      glVertex2f(v.x, v.y)
-    glEnd()
+
+    ##old gl
+    #glBegin(GL_TRIANGLE_FAN)
+    #for v in s.vertices:
+    #  glVertex2f(v.x, v.y)
+    #glEnd()
+
+    #modern gl
+    glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
+    glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
+    glVertexAttribPointer(GLuint(0), GLint(2), GL_FLOAT, GL_FALSE, 2 * sizeof(float), cast[pointer](0))
+    glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
 
     glDepthMask(GL_TRUE);
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
