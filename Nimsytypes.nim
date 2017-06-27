@@ -24,7 +24,8 @@ type
 type
   PShape* = ref object of RootObj
     vertices*: seq[PVector]
-    VBO*: GLuint
+    vbo*: GLuint
+    vao*: GLuint
     miters*: seq[PVector]
     normals*: seq[PVector]
     vlen*: int

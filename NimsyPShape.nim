@@ -14,13 +14,16 @@ import Nimsyglobals
 
 proc newPShape*(): PShape =
   return PShape(vertices: newSeq[PVector](),
-                VBO: 0,
+                vao: 0,
+                vbo: 0,
                 vlen: 0,
                 children: newSeq[PShape]())
 
 proc beginShape*(s: PShape) =
   s.vertices = @[]
   s.vlen = 0
+  glDeleteBuffers(1, s.vbo.addr)
+  glGenVertexArrays(1, s.vao.addr)
 
 proc vertex*(s: PShape, x, y, z: float) =
   s.vertices.add(PVector(x: x, y: y, z: z))
@@ -42,7 +45,15 @@ proc endShape*(s: PShape) =
       let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
       s.miters.add(normal(tan))
       s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
-  glGenBuffers(1, s.VBO.addr)
+  
+  glBindVertexArray(s.vao)
+  glGenBuffers(1, s.vbo.addr)
+  glBindBuffer(GL_ARRAY_BUFFER, s.vbo)
+  glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
+  glEnableVertexAttribArray(0)
+  glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
+  glBindBuffer(GL_ARRAY_BUFFER, 0)
+  glBindVertexArray(0)
 
 proc getVertex*(s: PShape, index: int): PVector =
   return s.vertices[index]
@@ -97,9 +108,12 @@ proc shape*(s: PShape) =
     # glEnd()
 
     #modern gl
-    glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
-    glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
-    glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
+    # glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
+    # glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
+    # glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
+
+    glBindVertexArray(s.vao)
+
     glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
 
     glDepthMask(GL_TRUE);
