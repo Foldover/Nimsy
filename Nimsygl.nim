@@ -93,10 +93,10 @@ proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   if height == 0:
     return
   glViewport(0, 0, GLsizei(width), GLsizei(height))
-  glMatrixMode(GL_PROJECTION)
-  glLoadIdentity()
+  #glMatrixMode(GL_PROJECTION)
+  #glLoadIdentity()
   #FIXME: Matrix stack is deprecated, investigate this.
-  glOrtho(0, GLdouble(width), GLdouble(height), 0, -1.0, 1.0);
+  #glOrtho(0, GLdouble(width), GLdouble(height), 0, -1.0, 1.0);
   projection = mat4f(ortho(0.0, float(width), float(height), 0.0, -1.0, 1.0))
 
 proc mainLoop() =
@@ -143,6 +143,7 @@ proc start*(w, h: int, name: cstring = "Nimsy App") =
   echo w
 
   glutInit()
+  glutInitContextVersion(3, 3)
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
   glutInitWindowSize(mWidth, mHeight)
   glutInitWindowPosition(50, 50)
@@ -173,8 +174,8 @@ proc start*(w, h: int, name: cstring = "Nimsy App") =
   glEnable(GL_MULTISAMPLE)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
-  glShadeModel(GL_SMOOTH)
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+  #glShadeModel(GL_SMOOTH) #deprecated in opengl 3.3
+  #glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
   glClearStencil( 0 );
   activeShader = Shader(ID: 0)
 
