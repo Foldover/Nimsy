@@ -2,9 +2,9 @@ import Nimsytypes
 import NimsyPVector
 import Nimsygl
 import Nimsyglobals
-import opengl
-import glut
-import glu
+import ../opengl/src/opengl/glut
+import ../opengl/src/opengl
+import ../opengl/src/opengl/glu
 import glm
 
 proc linePathDraw*(vertices: seq[PVector]) =

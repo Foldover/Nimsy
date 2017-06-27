@@ -1,6 +1,6 @@
-import glut
-import opengl
-import glu
+import ../opengl/src/opengl/glut
+import ../opengl/src/opengl
+import ../opengl/src/opengl/glu
 import glm
 
 type
