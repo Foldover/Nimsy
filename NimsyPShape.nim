@@ -90,17 +90,17 @@ proc shape*(s: PShape) =
     glStencilFunc(GL_ALWAYS,0x1,0x1);
     glStencilOp(GL_KEEP,GL_INVERT,GL_INVERT);
 
-    ##old gl
-    #glBegin(GL_TRIANGLE_FAN)
-    #for v in s.vertices:
-    #  glVertex2f(v.x, v.y)
-    #glEnd()
+    #old gl
+    glBegin(GL_TRIANGLE_FAN)
+    for v in s.vertices:
+     glVertex2f(v.x, v.y)
+    glEnd()
 
     #modern gl
-    glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
-    glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
-    glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
-    glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
+    # glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
+    # glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
+    # glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
+    # glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
 
     glDepthMask(GL_TRUE);
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);

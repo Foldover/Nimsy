@@ -19,10 +19,10 @@ proc setup() =
   shp.endShape()
 
 proc draw() {.cdecl.} =
-  #background(0.0, 0.0, 0.0, 1.0)
+  background(0.0, 0.0, 0.0, 1.0)
   strokeWeight(2.0)
   stroke(1.0, 0.0, 0.2, 1.0)
-  fill(1.0, 1.0, 1.0, 0.05)
+  fill(1.0, 1.0, 1.0, 0.5)
   shp.shape()
 
 setSetup(setup)

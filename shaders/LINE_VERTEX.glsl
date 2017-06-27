@@ -1,8 +1,13 @@
-#version 330 core
+//#version 330 core
 
-layout (location = 0) in vec2 a_pos;
+/*layout (location = 0) in vec2 a_pos;
 layout (location = 1) in vec2 a_normal;
-layout (location = 2) in vec2 a_miter;
+layout (location = 2) in vec2 a_miter;*/
+
+attribute vec2 a_pos;
+attribute vec2 a_normal;
+attribute vec2 a_miter;
+
 
 uniform float u_linewidth;
 uniform float u_linelen;
