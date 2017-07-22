@@ -143,7 +143,6 @@ proc start*(w, h: int, name: cstring = "Nimsy App") =
   echo w
 
   glutInit()
-  glutInitContextVersion(3, 3)
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
   glutInitWindowSize(mWidth, mHeight)
   glutInitWindowPosition(50, 50)

@@ -21,11 +21,7 @@ proc setup() =
 
 proc draw() {.cdecl.} =
   background(0.0, 0.0, 0.0, 1.0)
-<<<<<<< HEAD
   strokeWeight(1.12)
-=======
-  strokeWeight(2.0)
->>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
   stroke(1.0, 0.0, 0.2, 1.0)
   fill(1.0, 1.0, 1.0, 0.5)
   shp.shape()

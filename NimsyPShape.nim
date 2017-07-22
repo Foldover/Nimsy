@@ -14,19 +14,12 @@ import Nimsyglobals
 
 proc newPShape*(): PShape =
   return PShape(vertices: newSeq[PVector](),
-<<<<<<< HEAD
-=======
-                vao: 0,
-                vbo: 0,
->>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
                 vlen: 0,
                 children: newSeq[PShape]())
 
 proc beginShape*(s: PShape) =
   s.vertices = @[]
   s.vlen = 0
-  glDeleteBuffers(1, s.vbo.addr)
-  glGenVertexArrays(1, s.vao.addr)
 
 proc vertex*(s: PShape, x, y, z: float) =
   s.vertices.add(PVector(x: x, y: y, z: z))
@@ -48,18 +41,6 @@ proc endShape*(s: PShape) =
       let tan = tangent3(s.vertices[n-1], s.vertices[n], s.vertices[n+1])
       s.miters.add(normal(tan))
       s.normals.add(normal(s.vertices[n], s.vertices[n+1]))
-<<<<<<< HEAD
-=======
-  
-  glBindVertexArray(s.vao)
-  glGenBuffers(1, s.vbo.addr)
-  glBindBuffer(GL_ARRAY_BUFFER, s.vbo)
-  glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
-  glEnableVertexAttribArray(0)
-  glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
-  glBindBuffer(GL_ARRAY_BUFFER, 0)
-  glBindVertexArray(0)
->>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
 
 proc getVertex*(s: PShape, index: int): PVector =
   return s.vertices[index]
@@ -107,46 +88,21 @@ proc shape*(s: PShape) =
     glStencilFunc(GL_ALWAYS,0x1,0x1);
     glStencilOp(GL_KEEP,GL_INVERT,GL_INVERT);
 
-<<<<<<< HEAD
     #old gl
     glBegin(GL_TRIANGLE_FAN)
     for v in s.vertices:
      glVertex2f(v.x, v.y)
     glEnd()
-=======
-    # #old gl
-    # glBegin(GL_TRIANGLE_FAN)
-    # for v in s.vertices:
-    #  glVertex2f(v.x, v.y)
-    # glEnd()
-
-    #modern gl
-    # glBindBuffer(GL_ARRAY_BUFFER, s.VBO)
-    # glBufferData(GL_ARRAY_BUFFER, sizeof(s.vertices), s.vertices.addr, GL_DYNAMIC_DRAW)
-    # glVertexAttribPointer(GLuint(0), GLint(2), cGL_FLOAT, GL_FALSE, 2 * sizeof(float), nil)
-
-    glBindVertexArray(s.vao)
-
-    glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
->>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
 
     glDepthMask(GL_TRUE);
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
     glStencilFunc(GL_EQUAL,0x1,0x1);
     glStencilOp(GL_KEEP,GL_KEEP,GL_INVERT);
-<<<<<<< HEAD
     glBegin(GL_TRIANGLE_FAN)
     for v in s.vertices:
       glVertex2f(v.x, v.y)
     glEnd()
 
-=======
-    glDrawArrays(GL_TRIANGLE_FAN, 0, GLsizei(s.vertices.len))
-    # glBegin(GL_TRIANGLE_FAN)
-    # for v in s.vertices:
-    #   glVertex2f(v.x, v.y)
-    # glEnd()
->>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
     glDisable(GL_STENCIL_TEST);
 
   if isStroke:
