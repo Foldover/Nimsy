@@ -6,6 +6,7 @@ import Nimsytypes
 
 var
   shp: PShape
+  m: float = 0
 
 proc setup() =
   frameRate(60)
@@ -19,8 +20,8 @@ proc setup() =
   shp.endShape()
 
 proc draw() {.cdecl.} =
-  #background(0.0, 0.0, 0.0, 1.0)
-  strokeWeight(2.0)
+  background(0.0, 0.0, 0.0, 1.0)
+  strokeWeight(1.12)
   stroke(1.0, 0.0, 0.2, 1.0)
   fill(1.0, 1.0, 1.0, 0.05)
   shp.shape()
