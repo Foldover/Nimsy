@@ -2,6 +2,11 @@ attribute vec2 a_pos;
 attribute vec2 a_normal;
 attribute vec2 a_miter;
 
+// attribute vec2 a_pos;
+// attribute vec2 a_normal;
+// attribute vec2 a_miter;
+
+
 uniform float u_linewidth;
 uniform float u_linelen;
 uniform mat4 u_mv_matrix;

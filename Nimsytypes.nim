@@ -1,6 +1,6 @@
-import glut
-import opengl
-import glu
+import ../opengl/src/opengl/glut
+import ../opengl/src/opengl
+import ../opengl/src/opengl/glu
 import glm
 
 type
@@ -24,6 +24,11 @@ type
 type
   PShape* = ref object of RootObj
     vertices*: seq[PVector]
+<<<<<<< HEAD
+=======
+    vbo*: GLuint
+    vao*: GLuint
+>>>>>>> 7d58e26ee87ea8e1a9e6c09995eee227d0242702
     miters*: seq[PVector]
     normals*: seq[PVector]
     vlen*: int

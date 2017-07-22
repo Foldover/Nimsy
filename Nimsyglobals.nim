@@ -1,7 +1,7 @@
 import Nimsytypes
-import opengl
-import glu
-import glut
+import ../opengl/src/opengl/glut
+import ../opengl/src/opengl
+import ../opengl/src/opengl/glu
 import glm
 import math
 
