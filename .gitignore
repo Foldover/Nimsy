@@ -3,4 +3,5 @@ Nimsy
 nimcache/
 Books/
 
-main
+main.nim
+./main
