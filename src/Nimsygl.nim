@@ -136,18 +136,26 @@ proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
 
 #FIXME: Sometimes the program fails to run. See "echo w"
 #TODO: initialization REALLY needs to be prettier. How the hell do you resize a gl window?
+
+#For Windows 10. Freeglut complains if a display function callback is not provided.
+#On Ubuntu 16.04 this problem doesn't appear. Go figure.
+proc dummyDisplayFunc() {.cdecl.} =
+  echo "Running dummy display function"
+
 proc start*(w, h: int, name: cstring = "Nimsy App") =
   mWidth = w
   mHeight = h  
   #FIXME: without "echo w" the program can't start. Go figure.
   echo w
-
+  sleep(1000)
+  
   glutInit()
   glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
   glutInitWindowSize(mWidth, mHeight)
   glutInitWindowPosition(50, 50)
   mainWindowID = glutCreateWindow(name)
   loadExtensions()
+  glutDisplayFunc(dummyDisplayFunc)
 
   #Setup opengl callbacks
   if drawProcedure != nil:

@@ -24,7 +24,9 @@ proc draw() {.cdecl.} =
   strokeWeight(1.12)
   stroke(1.0, 0.0, 0.2, 1.0)
   fill(1.0, 1.0, 1.0, 0.5)
+  shp.setVertex(newPVector(10 + m, 150, 0), 3)
   shp.shape()
+  m += 1
 
 setSetup(setup)
 setDraw(draw)

@@ -1,0 +1,1 @@
+start /d "builds\windows" main.exe

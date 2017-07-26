@@ -2,6 +2,6 @@ Nimsy
 
 nimcache/
 Books/
+builds/linux/*
+builds/windows/*
 
-main.nim
-./main
