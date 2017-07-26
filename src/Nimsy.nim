@@ -32,6 +32,7 @@ export Nimsygl.fill
 export Nimsygl.frameRate
 export Nimsygl.translate
 export Nimsygl.rotate
+export Nimsygl.scale
 export Nimsygl.pushMatrix
 export Nimsygl.popMatrix
 

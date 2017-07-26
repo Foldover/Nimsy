@@ -1,6 +1,6 @@
-import ../opengl/src/opengl/glut
-import ../opengl/src/opengl
-import ../opengl/src/opengl/glu
+import ../../opengl/src/opengl/glut
+import ../../opengl/src/opengl
+import ../../opengl/src/opengl/glu
 import glm
 import math
 import random
@@ -337,3 +337,6 @@ proc translate*(x, y: float) =
 proc rotate*(angle: float) =
   #model_view = rotate(model_view, vec3f(0, 0, 1), angle)
   projection = rotate(projection, vec3f(0, 0, 1), angle)
+
+proc scale*(x, y, z: float) =
+  projection = scale(projection, vec3f(x, y, z))

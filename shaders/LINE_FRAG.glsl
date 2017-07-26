@@ -11,7 +11,7 @@ void main()
   }
   else if(e_o_drawing_mode == 2.0)
   {
-    gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    gl_FragColor = fill_color;
   }
   else
   {
