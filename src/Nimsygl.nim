@@ -7,6 +7,9 @@ import random
 import times, os
 import Nimsytypes
 import Nimsyglobals
+import nimPNG
+import system
+import sequtils
 
 #[
   Shader code is temporarily here.
@@ -331,12 +334,24 @@ proc popMatrix*() =
     isMatPushed = false
 
 proc translate*(x, y: float) =
-  #model_view = translate(model_view, vec3f(float(x), float(y), 0.0))
   projection = translate(projection, vec3f(float(x), float(y), 0.0))
 
 proc rotate*(angle: float) =
-  #model_view = rotate(model_view, vec3f(0, 0, 1), angle)
   projection = rotate(projection, vec3f(0, 0, 1), angle)
 
 proc scale*(x, y, z: float) =
   projection = scale(projection, vec3f(x, y, z))
+
+#This is horrendously slow. Making data and stringData static doesn't help (that much), so savePNG24() is probably pretty slow
+proc saveFrame*(path: string): bool =
+  var
+    data = newSeq[byte](4 * mWidth * mHeight)
+  data.apply(proc(i: var byte) = i = 0x00)
+  glReadPixels(GLint(0), GLint(0), GLsizei(mWidth), GLsizei(mHeight), GL_RGBA, GL_UNSIGNED_BYTE, cast[pointer](data))
+  var 
+    stringData = newStringOfCap(4 * mWidth * mHeight)
+  for n in 0..<mWidth*mHeight:
+    stringData.add chr(data[n * 4])
+    stringData.add chr(data[n * 4 + 1])
+    stringData.add chr(data[n * 4 + 2])
+  discard savePNG(path, stringData, LCT_RGB, 8, mWidth, mHeight)

@@ -3,6 +3,7 @@
 import Nimsy
 import math
 import Nimsytypes
+import strutils
 
 var
   shp: PShape
@@ -31,13 +32,13 @@ proc draw() {.cdecl.} =
   noStroke()
   fill(0.24, 0.12, 0.87, 0.001)
   rect(0, 0, width(), height())
-  strokeWeight(3)
-  stroke(1.0-m, 0.0+m, 0.2, 0.01)
-  fill(0.0+m, 0.3, 0.87, 0.005)
+  strokeWeight(5)
+  stroke(1.0, 0.0, 0.2, 0.01)
+  fill(0.12, 0.89, 0.18, 0.01)
   pushMatrix()
   
   translate(width()/2, height()/2)
-  scale(1+m, 1+m, 0)
+  scale(1+sin(m)*4, 1+sin(m)*4, 0)
   rotate(m)
   shp.shape()
   popMatrix()

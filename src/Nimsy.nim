@@ -35,6 +35,7 @@ export Nimsygl.rotate
 export Nimsygl.scale
 export Nimsygl.pushMatrix
 export Nimsygl.popMatrix
+export Nimsygl.saveFrame
 
 #export Nimsyprimitives symbols
 export Nimsyprimitives.circle
