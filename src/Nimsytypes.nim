@@ -36,3 +36,7 @@ type
 type
   DrawingModes* {.pure.} = enum
     LINE, PATH, POLYGON, CAP
+
+type
+  Image* = ref object of RootObj
+    pixels*: seq[Color]

@@ -25,6 +25,10 @@ proc vertex*(s: PShape, x, y, z: float) =
   s.vertices.add(PVector(x: x, y: y, z: z))
   s.vlen += 1
 
+proc vertex*(s: PShape, vec: PVector) =
+  s.vertices.add(PVector(x: vec.x, y: vec.y, z: vec.z))
+  s.vlen += 1
+
 proc endShape*(s: PShape) =
   s.miters = newSeq[PVector]()
   s.normals = newSeq[PVector]()
