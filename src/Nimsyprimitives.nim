@@ -5,9 +5,13 @@ import Nimsylinepath
 import NimsyPVector
 import math
 import glm
-import ../../opengl/src/opengl/glut
-import ../../opengl/src/opengl
-import ../../opengl/src/opengl/glu
+# import ../../opengl/src/opengl/glut
+# import ../../opengl/src/opengl
+# import ../../opengl/src/opengl/glu
+
+import glfw
+import glfw/wrapper
+import ../../nim-glfw/src/glad/gl
 
 proc point*(x, y, z: float) =
   var

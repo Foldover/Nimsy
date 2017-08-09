@@ -45,7 +45,7 @@ var
 proc setup() =
   frameRate(60)
   background(0.0, 0.0, 0.0, 1.0)
-
+  loop()
   for n in 0..<nstars:
     stars[n] = newStar(40.0, float(n) * 100.0)
 

@@ -3,14 +3,18 @@
 ]#
 
 import Nimsygl
-import ../../opengl/src/opengl/glut
-import ../../opengl/src/opengl
-import ../../opengl/src/opengl/glu
+# import ../../opengl/src/opengl/glut
+# import ../../opengl/src/opengl
+# import ../../opengl/src/opengl/glu
 import glm
 import Nimsyprimitives
 from Nimsytypes import PShape, PVector, DrawingModes
 from NimsyPVector import normal, tangent3
 import Nimsyglobals
+
+import glfw
+import glfw/wrapper
+import ../../nim-glfw/src/glad/gl
 
 proc newPShape*(): PShape =
   return PShape(vertices: newSeq[PVector](),
@@ -86,8 +90,8 @@ proc shape*(s: PShape) =
   if isFill:
     useFillColor()
     glVertexAttrib1f(GLuint(drawingModeLocation), GLfloat(DrawingModes.POLYGON))
-    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
-    glDepthMask(GL_FALSE);
+    glColorMask(false, false, false, false);
+    glDepthMask(false);
     glEnable(GL_STENCIL_TEST);
     glStencilFunc(GL_ALWAYS,0x1,0x1);
     glStencilOp(GL_KEEP,GL_INVERT,GL_INVERT);
@@ -98,8 +102,8 @@ proc shape*(s: PShape) =
      glVertex2f(v.x, v.y)
     glEnd()
 
-    glDepthMask(GL_TRUE);
-    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+    glDepthMask(true);
+    glColorMask(true, true, true, true);
     glStencilFunc(GL_EQUAL,0x1,0x1);
     glStencilOp(GL_KEEP,GL_KEEP,GL_INVERT);
     glBegin(GL_TRIANGLE_FAN)

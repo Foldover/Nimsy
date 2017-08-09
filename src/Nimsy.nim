@@ -19,7 +19,7 @@ export Nimsygl.size
 export Nimsygl.setSetup
 export Nimsygl.setDraw
 export Nimsygl.setMouseDragged
-export Nimsygl.setMouseKeyEvent
+export Nimsygl.setMouseButtonEvent
 export Nimsygl.setKeyboardEvent
 export Nimsygl.loop
 export Nimsygl.noLoop

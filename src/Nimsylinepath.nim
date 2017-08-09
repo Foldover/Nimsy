@@ -2,10 +2,14 @@ import Nimsytypes
 import NimsyPVector
 import Nimsygl
 import Nimsyglobals
-import ../../opengl/src/opengl/glut
-import ../../opengl/src/opengl
-import ../../opengl/src/opengl/glu
+# import ../../opengl/src/opengl/glut
+# import ../../opengl/src/opengl
+# import ../../opengl/src/opengl/glu
 import glm
+
+import glfw
+import glfw/wrapper
+import ../../nim-glfw/src/glad/gl
 
 proc linePathDraw*(vertices: seq[PVector]) =
   var miters = newSeq[PVector]()

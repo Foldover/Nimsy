@@ -1,6 +1,6 @@
-import ../../opengl/src/opengl/glut
-import ../../opengl/src/opengl
-import ../../opengl/src/opengl/glu
+# import ../../opengl/src/opengl/glut
+# import ../../opengl/src/opengl
+# import ../../opengl/src/opengl/glu
 import glm
 import math
 import random
@@ -11,10 +11,18 @@ import nimPNG
 import system
 import sequtils
 
+import glfw
+import glfw/wrapper
+import ../../nim-glfw/src/glad/gl
+
 #[
   Shader code is temporarily here.
   #TODO: Move shader code to separate module.
 ]#
+
+var
+  mWindows: seq[Win]
+  currentWindow = 0
 
 proc logShader(shader: GLuint) =
    var length: GLint = 0
@@ -69,8 +77,8 @@ var
   setupProcedure: proc()
   drawProcedure: proc() {.cdecl.}
   mouseDragProcedure: proc(x, y: float)
-  mouseKeyProcedure: proc(button: int, state: int, x: float, y: float)
-  keyboardKeyProcedure: proc(key: char, x, y: int)
+  mouseButtonProcedure: proc(win: Win, button: MouseBtn, pressed: bool, modKeys: ModifierKeySet)
+  keyboardKeyProcedure: proc(win: Win, key: Key, scanCode: int, action: KeyAction, modKeys: ModifierKeySet)
 
 #[
   These are getter procedures available to Nimsy users.
@@ -91,30 +99,12 @@ proc mouseY*(): float {.inline.} =
 #[
   Internal procedures.
 ]#
-
+  
 proc reshape(width: GLsizei, height: GLsizei) {.cdecl.} =
   if height == 0:
     return
   glViewport(0, 0, GLsizei(width), GLsizei(height))
-  #glMatrixMode(GL_PROJECTION)
-  #glLoadIdentity()
-  #FIXME: Matrix stack is deprecated, investigate this.
-  #glOrtho(0, GLdouble(width), GLdouble(height), 0, -1.0, 1.0);
   projection = mat4f(ortho(0.0, float(width), float(height), 0.0, -1.0, 1.0))
-
-proc mainLoop() =
-  while (glutGetWindow() != 0):
-    let t1 = epochTime() / 1000.0
-    glutMainLoopEvent()
-    if(isLoop):
-      glClear(GL_STENCIL_BUFFER_BIT)
-      drawProcedure()
-      glutSwapBuffers()
-    let t2 = epochTime() / 1000.0
-    var msDiff = msInFrame - (t2 - t1)
-    if msDiff < 0.0:
-      msDiff = 0.0
-    sleep(int(msDiff))
 
 proc mousePassiveMotionProc(mx: cint, my: cint) {.cdecl.} =
   mMouseX = mx
@@ -126,57 +116,63 @@ proc mouseMotionProc(mx: cint, my: cint) {.cdecl.} =
   if mouseDragProcedure != nil:
     mouseDragProcedure(float(mx), float(my))
 
-proc mouseKeyProc(button, state, x, y: cint) {.cdecl.} =
-  if mouseKeyProcedure != nil:
-    mouseKeyProcedure(int(button), int(state), float(x), float(y))
+proc mouseButtonProc(win: Win, button: MouseBtn, pressed: bool, modKeys: ModifierKeySet) =
+  if mouseButtonProcedure != nil:
+    mouseButtonProcedure(win = win, button = button, pressed = pressed, modKeys = modKeys)
 
-proc keyboardKeyProc(key: int8, x, y: cint) {.cdecl.} =
+proc keyboardKeyProc(win: Win, key: Key, scanCode: int, action: KeyAction, modKeys: ModifierKeySet) =
   if keyboardKeyProcedure != nil:
-    keyboardKeyProcedure(char(key), int(x), int(y))
-#[
-  Procedures available to Nimsy users
-]#
+    keyboardKeyProcedure(win = win, key = key, scanCode = scanCode, action = action, modKeys = modKeys)
 
 #FIXME: Sometimes the program fails to run. See "echo w"
 #TODO: initialization REALLY needs to be prettier. How the hell do you resize a gl window?
 
-#For Windows 10. Freeglut complains if a display function callback is not provided.
-#On Ubuntu 16.04 this problem doesn't appear. Go figure.
-proc dummyDisplayFunc() {.cdecl.} =
-  echo "Running dummy display function"
+proc setGLCallbacks(window: Win) =
+  window.keyCb = keyboardKeyProc
+  window.mouseBtnCb = mouseButtonProc
 
-proc start*(w, h: int, name: cstring = "Nimsy App") =
+proc mainLoop() =
+  while (not mWindows[0].shouldClose):
+    let t1 = epochTime() / 1000.0
+    if(isLoop):
+      glClear(GL_STENCIL_BUFFER_BIT)
+      glfw.swapBufs(mWindows[currentWindow])
+      glfw.pollEvents()
+      drawProcedure()
+    let t2 = epochTime() / 1000.0
+    var msDiff = msInFrame - (t2 - t1)
+    if msDiff < 0.0:
+      msDiff = 0.0
+    sleep(int(msDiff))
+
+#[
+  Procedures available to Nimsy users
+]#
+
+proc start*(w, h: int, name: string = "Nimsy App") =
   mWidth = w
   mHeight = h  
-  #FIXME: without "echo w" the program can't start. Go figure.
-  echo w
-  sleep(1000)
-  
-  glutInit()
-  glutInitDisplayMode(GLUT_DOUBLE or GLUT_STENCIL or GLUT_DEPTH or GLUT_MULTISAMPLE)
-  glutInitWindowSize(mWidth, mHeight)
-  glutInitWindowPosition(50, 50)
-  mainWindowID = glutCreateWindow(name)
-  loadExtensions()
-  glutDisplayFunc(dummyDisplayFunc)
 
-  #Setup opengl callbacks
-  if drawProcedure != nil:
-    isLoop = true
-    glutIdleFunc(TGlutVoidCallback(drawProcedure))
-  else:
-    isLoop = false
+  glfw.init()
+  mWindows = newSeq[Win](0)
+  mWindows.add(glfw.newGlWin(
+    dim = (w: w, h: h), 
+    title = name,
+    resizable = true,
+    version = glv12,
+    nMultiSamples = 1,
+    forwardCompat = false
+    ))
+  glfw.makeContextCurrent(mWindows[0])
+  mWindows[0].stickyKeys = true
 
-  glutMotionFunc(TGlut2IntCallback(mouseMotionProc))
-  glutPassiveMotionFunc(TGlut2IntCallback(mousePassiveMotionProc))
-  glutMouseFunc(TGlut4IntCallback(mouseKeyProc))
-  glutKeyboardFunc(TGlut1Char2IntCallback(keyboardKeyProc))
-
-  glutReshapeFunc(reshape)
+  if not gladLoadGL(getProcAddress):
+    quit "Error initialising OpenGL"
 
   if setupProcedure != nil:
     setupProcedure()
 
+  setGLCallbacks(mWindows[currentWindow])
   glClearColor(0.0, 0.0, 0.0, 1.0)
   glClearDepth(1.0)
   glEnable(GL_DEPTH_TEST)
@@ -184,8 +180,6 @@ proc start*(w, h: int, name: cstring = "Nimsy App") =
   glEnable(GL_MULTISAMPLE)
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
-  #glShadeModel(GL_SMOOTH) #deprecated in opengl 3.3
-  #glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
   glClearStencil( 0 );
   activeShader = Shader(ID: 0)
 
@@ -205,6 +199,8 @@ proc start*(w, h: int, name: cstring = "Nimsy App") =
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
   lineLengthLocation = glGetUniformLocation(activeShader.ID, "u_linelen")
   #TODO: prevent user from calling size() more than once
+
+  reshape(GLsizei(mWidth), GLsizei(mHeight))
 
   mainLoop()
 
@@ -230,11 +226,12 @@ proc setSetup*(procedure: proc()) =
 
 proc setDraw*(procedure: proc() {.cdecl.}) =
   drawProcedure = procedure
+  isLoop = true
 
-proc setMouseKeyEvent*(procedure: proc(button: int, state: int, x: float, y: float)) =
-  mouseKeyProcedure = procedure
+proc setMouseButtonEvent*(procedure: proc(win: Win, button: MouseBtn, pressed: bool, modKeys: ModifierKeySet)) =
+  mouseButtonProcedure = procedure
 
-proc setKeyboardEvent*(procedure: proc(key: char, x, y: int)) =
+proc setKeyboardEvent*(procedure: proc(win: Win, key: Key, scanCode: int, action: KeyAction, modKeys: ModifierKeySet)) =
   keyboardKeyProcedure = procedure
 
 proc setMouseDragged*(procedure: proc(x, y: float)) =
@@ -243,7 +240,6 @@ proc setMouseDragged*(procedure: proc(x, y: float)) =
 proc loop*() =
   if drawProcedure != nil:
     isLoop = true
-    glutIdleFunc(TGlutVoidCallback(drawProcedure))
 
 proc noLoop*() =
   isLoop = false
