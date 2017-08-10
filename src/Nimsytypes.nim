@@ -20,7 +20,18 @@ type
     r*, g*, b*, a*: float
 
 type
-  PVector* = ref object of RootObj
+  NVector* = ref object
+    x*: float
+    y*: float
+    z*: float
+
+type
+  Vector2* = ref object
+    x*: float
+    y*: float
+
+type
+  Vector3* = ref object
     x*: float
     y*: float
     z*: float

@@ -12,121 +12,121 @@
 
 import random
 import math
-from Nimsytypes import PVector
+from Nimsytypes import NVector
 
-proc newPVector*(x, y, z: float): PVector =
-  return PVector(x: x, y: y, z: z)
+proc newNVector*(x, y, z: float): NVector =
+  return NVector(x: x, y: y, z: z)
 
-proc newPVector*(value: float): PVector =
-  return PVector(x: value, y: value, z: value)
+proc newNVector*(value: float): NVector =
+  return NVector(x: value, y: value, z: value)
 
-proc random2D*(): PVector =
-  return PVector(x: random(1.0), y: random(1.0), z: 0)
+proc random2D*(): NVector =
+  return NVector(x: random(1.0), y: random(1.0), z: 0)
 
-proc random3D*(): PVector =
-  return PVector(x: random(1.0), y: random(1.0), z: random(1.0))
+proc random3D*(): NVector =
+  return NVector(x: random(1.0), y: random(1.0), z: random(1.0))
 
-proc fromAngle*(angle: float): PVector =
-  return PVector(x: cos(angle), y: sin(angle), z: 0)
+proc fromAngle*(angle: float): NVector =
+  return NVector(x: cos(angle), y: sin(angle), z: 0)
 
-proc magSq*(v: PVector): float =
+proc magSq*(v: NVector): float =
   return v.x*v.x + v.y*v.y + v.z*v.z
 
-proc mag*(v: PVector): float =
+proc mag*(v: NVector): float =
   return sqrt(v.magSq())
 
-proc `+`(v1, v2: PVector): PVector =
-  return PVector(x: v1.x+v2.x,
+proc `+`(v1, v2: NVector): NVector =
+  return NVector(x: v1.x+v2.x,
                   y: v1.y+v2.y,
                   z: v1.z+v2.z)
 
-proc `-`(v1, v2: PVector): PVector =
-  return PVector(x: v1.x-v2.x,
+proc `-`(v1, v2: NVector): NVector =
+  return NVector(x: v1.x-v2.x,
                   y: v1.y-v2.y,
                   z: v1.z-v2.z)
 
-proc `*`(v1, v2: PVector): PVector =
-  return PVector(x: v1.x*v2.x,
+proc `*`(v1, v2: NVector): NVector =
+  return NVector(x: v1.x*v2.x,
                   y: v1.y*v2.y,
                   z: v1.z*v2.z)
 
-proc `/`(v1, v2: PVector): PVector =
-  return PVector(x: v1.x/v2.x,
+proc `/`(v1, v2: NVector): NVector =
+  return NVector(x: v1.x/v2.x,
                   y: v1.y/v2.y,
                   z: v1.z/v2.z)
 
-proc `*`(v1: PVector, s: float): PVector =
-  return PVector(x: v1.x*s,
+proc `*`(v1: NVector, s: float): NVector =
+  return NVector(x: v1.x*s,
                   y: v1.y*s,
                   z: v1.z*s)
 
-proc `/`(v1: PVector, s: float): PVector =
-  return PVector(x: v1.x/s,
+proc `/`(v1: NVector, s: float): NVector =
+  return NVector(x: v1.x/s,
                   y: v1.y/s,
                   z: v1.z/s)
 
-proc add*(v1, v2: PVector) =
+proc add*(v1, v2: NVector) =
   v1.x += v2.x
   v1.y += v2.y
   v1.z += v2.z
 
 #TODO: implement more adding, subbing, multiplying and dividing procedures
 
-proc sub*(v1, v2: PVector) =
+proc sub*(v1, v2: NVector) =
   v1.x -= v2.x
   v1.y -= v2.y
   v1.z -= v2.z
 
-proc mult*(v1, v2: PVector) =
+proc mult*(v1, v2: NVector) =
   v1.x *= v2.x
   v1.y *= v2.y
   v1.z *= v2.z
 
-proc mult*(v1: PVector, s: float) =
+proc mult*(v1: NVector, s: float) =
   v1.x *= s
   v1.y *= s
   v1.z *= s
 
 #CONSIDERATION: div is a keyword in nim. Maybe have full names for every vector operation? (for consistency)
-proc divide*(v1, v2: PVector) =
+proc divide*(v1, v2: NVector) =
   v1.x /= v2.x
   v1.y /= v2.y
   v1.z /= v2.z
 
-proc divide*(v1: PVector, s: float) =
+proc divide*(v1: NVector, s: float) =
   v1.x /= s
   v1.y /= s
   v1.z /= s
 
-proc dist*(v1, v2: PVector): float =
+proc dist*(v1, v2: NVector): float =
   var
     x = v2.x-v1.x
     y = v2.y-v1.x
     z = v2.z-v1.z
   return sqrt(x*x + y*y + z*z)
 
-proc dot*(v1, v2: PVector): float =
+proc dot*(v1, v2: NVector): float =
   #TODO: look into Kahan summation
   return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z
 
-proc cross*(v1, v2: PVector): PVector =
+proc cross*(v1, v2: NVector): NVector =
   var
     tx = v1.y*v2.z + v1.z*v2.y
     ty = v1.x*v2.z + v1.z*v2.x
     tz = v1.x*v2.y + v1.y*v2.x
-  return PVector(x: tx, y: ty, z: tz)
+  return NVector(x: tx, y: ty, z: tz)
 
-proc normalized*(v: PVector): PVector =
+proc normalized*(v: NVector): NVector =
   var m: float = v.mag
-  return PVector(x: v.x/m, y: v.y/m, z: v.z/m)
+  return NVector(x: v.x/m, y: v.y/m, z: v.z/m)
 
-proc normalize*(v: PVector) =
+proc normalize*(v: NVector) =
   var m: float = v.mag
   v.x = v.x/m
   v.y = v.y/m
   v.z = v.z/m
 
-proc limited*(v: PVector, max: float): PVector =
+proc limited*(v: NVector, max: float): NVector =
   var
     tx: float = v.x
     ty: float = v.y
@@ -137,26 +137,26 @@ proc limited*(v: PVector, max: float): PVector =
     ty = max
   if tz > max:
     tz = max
-  return PVector(x: tx, y: ty, z: tz)
+  return NVector(x: tx, y: ty, z: tz)
 
-proc setMag*(v: PVector, len: float): PVector =
+proc setMag*(v: NVector, len: float): NVector =
   return v.normalized() * len
 
-proc heading*(v: PVector): float =
+proc heading*(v: NVector): float =
   var
-    tv: PVector = v.normalized()
-    zv: PVector = newPVector(0.0)
+    tv: NVector = v.normalized()
+    zv: NVector = newNVector(0.0)
     mapdot: float = (1.0 - (tv.dot(zv) + 1.0) * 0.5)
 
   return mapdot * 180.0
 
-proc rotated*(v: PVector, angle: float): PVector =
+proc rotated*(v: NVector, angle: float): NVector =
   var
     cs: float = cos(angle)
     sn: float = sin(angle)
-  return PVector(x: (v.x*cs - v.y*sn), y: (v.x*sn + v.y*cs), z: v.z)
+  return NVector(x: (v.x*cs - v.y*sn), y: (v.x*sn + v.y*cs), z: v.z)
 
-proc rotate*(v: PVector, angle: float) =
+proc rotate*(v: NVector, angle: float) =
   var
     cs: float = cos(angle)
     sn: float = sin(angle)
@@ -164,16 +164,16 @@ proc rotate*(v: PVector, angle: float) =
   v.y = (v.x*sn + v.y*cs)
   v.z = v.z
 
-proc angleBetween*(v1, v2: PVector): float =
+proc angleBetween*(v1, v2: NVector): float =
   let
-    tv1: PVector = v1.normalized()
-    tv2: PVector = v2.normalized()
+    tv1: NVector = v1.normalized()
+    tv2: NVector = v2.normalized()
   var
     mapdot: float = (1.0 - (tv1.dot(tv2) + 1.0) * 0.5)
 
   return mapdot * 180.0
 
-proc normal*(v1: PVector): PVector =
+proc normal*(v1: NVector): NVector =
   var nv = v1
   nv.normalize()
   let tx = nv.x
@@ -181,7 +181,8 @@ proc normal*(v1: PVector): PVector =
   nv.y = -tx
   return nv
 
-proc normal*(v1, v2: PVector): PVector =
+# TODO: Remove this function. It's existance is confusing.
+proc normal*(v1, v2: NVector): NVector =
   var nv = v2 - v1
   nv.normalize()
   let tx = nv.x
@@ -189,5 +190,5 @@ proc normal*(v1, v2: PVector): PVector =
   nv.y = -tx
   return nv
 
-proc tangent3*(v1, v2, v3: PVector): PVector =
+proc tangent3*(v1, v2, v3: NVector): NVector =
   return ((v3-v2).normalized() + (v2-v1).normalized()).normalized()
