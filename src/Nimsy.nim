@@ -4,6 +4,9 @@ import NimsyPShape
 import Nimsyprimitives
 import Nimsygl
 
+#SDL
+import Nsdl
+
 #export global symbols
 export Nimsyglobals.TWO_PI
 export Nimsyglobals.HALF_PI

@@ -26,21 +26,23 @@ type
     z*: float
 
 type
-  Vector2* = ref object
+  NakedVertex* = ref object
     x*: float
-    y*: float
-
-type
-  Vector3* = ref object
-    x*: float
-    y*: float
+    y*: float 
     z*: float
 
 type
+  VertexWithNormal* = ref object
+    x*: float
+    y*: float
+    z*: float
+    n*: NVector
+
+type
   PShape* = ref object of RootObj
-    vertices*: seq[PVector]
-    miters*: seq[PVector]
-    normals*: seq[PVector]
+    vertices*: seq[NVector]
+    miters*: seq[NVector]
+    normals*: seq[NVector]
     vlen*: int
     children*: seq[PShape]
 
