@@ -26,9 +26,7 @@ type
         mDrawOffset: GLuint
 
 var
-    vertexData: seq[seq[float]]
     lastIdx: int = 0
-    sb: seq[StreamedBuffer]
 
 proc newStreamedBuffer*() : StreamedBuffer =
     new(result)
@@ -42,41 +40,37 @@ proc newStreamedBuffer*() : StreamedBuffer =
         GL_STREAM_DRAW)
     glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-proc queueVertices*(data: seq[float]) =
-    for n in lastIdx..lastIdx + data.len:
-        vertexData[0][n] = data[n - lastIdx]
-
-    lastIdx += data.len
-
-proc uploadData*(data: seq[float]) =
-    glBindBuffer(GL_ARRAY_BUFFER, sb[0].mVbo)
+proc uploadData*(sb: StreamedBuffer, data: seq[float]) =
+    glBindBuffer(GL_ARRAY_BUFFER, sb.mVbo)
     var 
         dataSize = GLuint(data.sizeof)
         streamDataSize: GLuint = nextPowerOfTwo(dataSize)
     
-    if sb[0].mStreamOffset + streamDataSize > GLuint(STREAM_BUFFER_CAPACITY):
+    if sb.mStreamOffset + streamDataSize > GLuint(STREAM_BUFFER_CAPACITY):
         glBufferData(GL_ARRAY_BUFFER,
             STREAM_BUFFER_CAPACITY,
             nil,
             GL_STREAM_DRAW)
-        glBindVertexArray(sb[0].mVao)
-        glBindBuffer(GL_ARRAY_BUFFER, sb[0].mVbo)
+        glBindVertexArray(sb.mVao)
+        glBindBuffer(GL_ARRAY_BUFFER, sb.mVbo)
         glVertexAttribPointer(GLuint(0), GLint(3), cGL_FLOAT, GLboolean(0), GLsizei(0), cast[pointer](0))
         glBindVertexArray(0)
-        sb[0].mStreamOffset = 0
+        sb.mStreamOffset = 0
 
     var vertices = glMapBufferRange(GL_ARRAY_BUFFER,
-                        GLintptr(sb[0].mStreamOffset),
+                        GLintptr(sb.mStreamOffset),
                         GLsizeiptr(dataSize),
                         GL_MAP_WRITE_BIT or GL_MAP_UNSYNCHRONIZED_BIT)
 
     if vertices == nil:
         return
 
+    var verticesFloat = cast[ptr array[0 .. 0, float]](vertices)
+
     for n in 0..lastIdx:
-        vertices[n] = vertexData[0][n]
+        verticesFloat[n] = sb.mVertices[n]
 
     discard glUnmapBuffer(GL_ARRAY_BUFFER)
     glBindBuffer(GL_ARRAY_BUFFER, 0)
-    sb[0].mDrawOffset = sb[0].mStreamOffset div (GLfloat.sizeof * 3)
-    sb[0].mStreamOffset += dataSize
+    sb.mDrawOffset = sb.mStreamOffset div (GLfloat.sizeof * 3)
+    sb.mStreamOffset += dataSize
