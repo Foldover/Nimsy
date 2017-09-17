@@ -9,6 +9,8 @@ import glfw
 import glfw/wrapper
 import ../../nim-glfw/src/glad/gl
 
+import NShader
+
 #[ Constants ]#
 const
   TESS_RES*: int = 64
@@ -51,7 +53,7 @@ var
   pushedProjection*: Mat4x4[float32]
   isMatPushed* = false
 
-#[ Shader vars ]#
+#Shader vars
 var
   activeShader*: Shader
 
@@ -65,4 +67,3 @@ var
   vertexNormalLocation*: GLint
   vertexPositionLocation*: GLint
   drawingModeLocation*: GLint
-  lineLengthLocation*: GLint

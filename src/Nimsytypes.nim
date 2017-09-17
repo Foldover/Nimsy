@@ -47,10 +47,6 @@ type
     children*: seq[PShape]
 
 type
-  Shader* = ref object of RootObj
-    ID* : GLuint
-
-type
   DrawingModes* {.pure.} = enum
     LINE, PATH, POLYGON, CAP
 

@@ -5,67 +5,32 @@ import glm
 import math
 import random
 import times, os
-import Nimsytypes
-import Nimsyglobals
 import nimPNG
 import system
 import sequtils
+import tables
 
 import glfw
 import glfw/wrapper
 import ../../nim-glfw/src/glad/gl
 
-#[
-  Shader code is temporarily here.
-  #TODO: Move shader code to separate module.
-]#
+import Nimsytypes
+import Nimsyglobals
+import NShader
+
+type
+  Renderer = ref object
+    matrixMV: Mat4x4[float32]
+    matrixP: Mat4x4[float32]
+    geometryTable: TableRef
+    materialTable: TableRef
+    fillColor: array[4, float]
+    strokeColor: array[4, float]
+    strokeWeight: float
 
 var
   mWindows: seq[Win]
   currentWindow = 0
-
-proc logShader(shader: GLuint) =
-   var length: GLint = 0
-   glGetShaderiv(shader, GL_INFO_LOG_LENGTH, length.addr)
-   var log: string = newString(length.int)
-   glGetShaderInfoLog(shader, length, nil, log)
-   echo "Log: ", log
-
-proc shader(s: Shader, pathToVerShader: string, pathToFragShader: string) =
-  var
-    verFromFile: array[1, string] = [readFile(pathToVerShader).string]
-    fragFromFile: array[1, string] = [readFile(pathToFragShader).string]
-    verSource = allocCStringArray(verFromFile)
-    fragSource = allocCStringArray(fragFromFile)
-    resultVer: GLuint = 0
-    resultFrag: GLuint = 0
-    compiled: GLint = 0
-
-  resultVer = glCreateShader(GL_VERTEX_SHADER)
-  glShaderSource(resultVer, 1, verSource, nil)
-  glCompileShader(resultVer)
-  glGetShaderiv(resultVer, GL_COMPILE_STATUS, compiled.addr)
-  if compiled == 0:
-    logShader(resultVer)
-
-  resultFrag = glCreateShader(GL_FRAGMENT_SHADER)
-  glShaderSource(resultFrag, 1, fragSource, nil)
-  glCompileShader(resultFrag)
-  glGetShaderiv(resultFrag, GL_COMPILE_STATUS, compiled.addr)
-  if compiled == 0:
-    logShader(resultFrag)
-
-  s.ID = glCreateProgram();
-  glAttachShader(s.ID, resultVer)
-  glAttachShader(s.ID, resultFrag)
-  glLinkProgram(s.ID)
-
-  deallocCStringArray(verSource)
-  deallocCStringArray(fragSource)
-  glDeleteShader(resultVer)
-  glDeleteShader(resultFrag)
-
-  glUseProgram(s.ID)
 
 #[
   These variables are not to be messed with outside this module.
@@ -181,11 +146,11 @@ proc start*(w, h: int, name: string = "Nimsy App") =
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glDepthFunc(GL_LEQUAL)
   glClearStencil( 0 );
-  activeShader = Shader(ID: 0)
+  activeShader = newShader()
 
   #TODO: load default shaders from separate module
   modelView = mat4f(1.0)
-  shader(activeShader, "shaders/LINE_VERTEX.glsl", "shaders/LINE_FRAG.glsl")
+  activeShader.ID = shader("shaders/LINE_VERTEX.glsl", "shaders/LINE_FRAG.glsl")
   modelViewLocation = glGetUniformLocation(activeShader.ID, "u_mv_matrix")
   projectionLocation = glGetUniformLocation(activeShader.ID, "u_p_matrix")
   var
@@ -197,7 +162,6 @@ proc start*(w, h: int, name: string = "Nimsy App") =
   vertexMiterLocation = glGetAttribLocation(activeShader.ID, "a_miter")
   vertexPositionLocation = glGetAttribLocation(activeShader.ID, "a_pos")
   drawingModeLocation = glGetAttribLocation(activeShader.ID, "e_i_drawing_mode")
-  lineLengthLocation = glGetUniformLocation(activeShader.ID, "u_linelen")
   #TODO: prevent user from calling size() more than once
 
   reshape(GLsizei(mWidth), GLsizei(mHeight))
